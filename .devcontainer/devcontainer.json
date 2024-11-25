@@ -1,0 +1,21 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/go
+{
+  "name": "hoarderbot",
+  "dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"features": {
+		"ghcr.io/devcontainers-extra/features/dasel-asdf:2": {},
+		"ghcr.io/devcontainers-extra/features/fzf:1": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+	},
+  "postCreateCommand": "(cut -d' ' -f1 .tool-versions | xargs -i asdf plugin add {}) && asdf install",
+	"customizations": {
+    "vscode": {
+      "extensions": [
+        "EditorConfig.EditorConfig"
+      ]
+    }
+  }
+}

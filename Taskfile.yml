@@ -1,0 +1,53 @@
+version: "3"
+
+vars:
+  APP_NAME: hoarderbot
+
+tasks:
+  default:
+    desc: "Build and run"
+    cmds:
+      - task update-dependencies
+      - task install
+
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - go clean
+      - rm -rf bin
+
+  install:
+    desc: "Install the bot"
+    deps: [build]
+    cmds:
+      - mkdir -p $HOME/.go/bin
+      - cp bin/{{.APP_NAME}} $HOME/.go/bin/{{.APP_NAME}} && chmod +x $HOME/.go/bin/{{.APP_NAME}}
+
+  test:
+    desc: "Run tests"
+    cmds:
+      - go test ./...
+
+  update-dependencies:
+    desc: "Update dependencies"
+    cmds:
+      - go get -u all && go mod tidy
+
+  #############
+  ### BUILD ###
+  #############
+
+  build:
+    desc: "Build the bot"
+    cmds:
+      - go build -o bin/{{.APP_NAME}} cmd/main.go
+
+  build:debug:
+    desc: "Build the bot for debug mode"
+    cmds:
+      - CGO_ENABLED=0 go build -gcflags=all="-N -l" -o bin/{{.APP_NAME}}-debug cmd/main.go
+
+  build:docker:
+    desc: "Build the bot docker image"
+    cmds:
+      - docker build -t hoarder:latest -f docker/Dockerfile .

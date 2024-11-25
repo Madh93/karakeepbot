@@ -1,0 +1,7 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/go:1-1.23-bookworm
+    container_name: devcontainer_hoarderbot
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
