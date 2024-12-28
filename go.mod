@@ -1,3 +1,26 @@
 module github.com/Madh93/hoarderbot
 
-go 1.23.2
+go 1.23.4
+
+require (
+	github.com/Madh93/go-hoarder v0.20.0
+	github.com/go-telegram/bot v1.12.1
+	github.com/knadh/koanf/parsers/toml/v2 v2.1.0
+	github.com/knadh/koanf/providers/env v1.0.0
+	github.com/knadh/koanf/providers/file v1.1.2
+	github.com/knadh/koanf/v2 v2.1.2
+	github.com/lmittmann/tint v1.0.6
+)
+
+require (
+	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
+	github.com/fsnotify/fsnotify v1.8.0 // indirect
+	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/google/uuid v1.6.0 // indirect
+	github.com/knadh/koanf/maps v0.1.1 // indirect
+	github.com/mitchellh/copystructure v1.2.0 // indirect
+	github.com/mitchellh/reflectwalk v1.0.2 // indirect
+	github.com/oapi-codegen/runtime v1.1.1 // indirect
+	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+)

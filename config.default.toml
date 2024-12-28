@@ -1,0 +1,47 @@
+##################### Hoarderbot Configuration Defaults #####################
+
+# ------------------------------------------
+# Telegram configuration
+# ------------------------------------------
+[telegram]
+
+# Telegram bot token
+token = "<YOUR_BOT_TOKEN_FROM_BOTFATHER>"
+
+# Allowed chat IDs for the bot to interact with. If empty (default), the bot
+# will interact with all chats.
+allowlist = []
+
+# ------------------------------------------
+# Hoarder configuration
+# ------------------------------------------
+[hoarder]
+
+# Base URL of the Hoarder server
+url = "http://localhost:3000"
+
+# Hoarder API key
+token = "<YOUR_HOARDER_API_KEY>"
+
+# Interval (in seconds) before retrying tagging status
+interval = 5
+
+# ------------------------------------------
+# Logging configuration
+# ------------------------------------------
+[logging]
+
+# Log level. Possible options: "debug", "info" (default), "warn", "error", "panic".
+level = "info"
+
+# Log format. Possible options: "text" (default), "json".
+format = "text"
+
+# Output destination. Possible options: "stdout" (default), "stderr", "file".
+output = "stdout"
+
+# File path for logging output (if output is a file)
+path = "hoarderbot.log"
+
+# Wheater enable coloring in the log messages (if format is text)
+colored = true
