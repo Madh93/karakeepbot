@@ -57,8 +57,8 @@ archives:
 kos:
   - build: binary
     repositories:
-      - "ghcr.io/Madh93/{{ .ProjectName }}"
-      - "madh93/{{ .ProjectName }}"
+      - ghcr.io/Madh93/hoarderbot
+      - madh93/hoarderbot
     tags:
       - "{{ .Version }}"
       - latest
