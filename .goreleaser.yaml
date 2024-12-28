@@ -73,6 +73,7 @@ kos:
       org.opencontainers.image.url: "{{ .GitURL }}"
       org.opencontainers.image.vendor: Madh93
       org.opencontainers.image.version: "{{ .Version }}"
+    sbom: none      
     bare: true
     preserve_import_paths: false
     platforms:
