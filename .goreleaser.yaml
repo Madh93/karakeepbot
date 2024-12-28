@@ -57,7 +57,7 @@ archives:
 kos:
   - build: binary
     repositories:
-      - ghcr.io/Madh93/hoarderbot
+      - ghcr.io/madh93/hoarderbot
       - madh93/hoarderbot
     tags:
       - "{{ .Version }}"
