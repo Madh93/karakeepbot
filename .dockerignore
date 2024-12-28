@@ -2,3 +2,4 @@
 !**/*.go
 !go.mod
 !go.sum
+!config.default.toml
