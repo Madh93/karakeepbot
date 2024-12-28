@@ -97,7 +97,7 @@ release:
   draft: true
   github:
     owner: Madh93
-    name: "{{ .ProjectName }}"
+    name: hoarderbot
   footer: >-
 
     ---
