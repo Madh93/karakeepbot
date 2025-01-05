@@ -1,7 +1,3 @@
-// Package hoarderbot implements a Telegram bot that allows users to create
-// bookmarks through messages. The bot interacts with the Hoarder API to manage
-// bookmarks and handles incoming messages by checking if the chat ID is
-// allowed, creating bookmarks, and sending back updated messages with tags.
 package hoarderbot
 
 import (
@@ -54,6 +50,11 @@ func (hb *HoarderBot) Run() error {
 
 	// Set default handler
 	hb.telegram.RegisterHandlerMatchFunc(func(*TelegramUpdate) bool { return true }, hb.handler)
+
+	// Add handler for /start command
+	hb.telegram.RegisterHandlerMatchFunc(func(update *TelegramUpdate) bool {
+		return update.Message != nil && update.Message.Text == "/start"
+	}, hb.startCommandHandler)
 
 	// Start the bot
 	hb.telegram.Start(ctx)
@@ -130,6 +131,35 @@ func (hb HoarderBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdate
 	}
 
 	hb.logger.Info("Updated message", msg.Attrs()...)
+}
+
+// startCommandHandler handles the /start command. It provides detailed information
+// about the bot if the user is listed in the allowlist.
+func (hb HoarderBot) startCommandHandler(ctx context.Context, _ *Bot, update *TelegramUpdate) {
+	if update.Message == nil {
+		return
+	}
+
+	msg := TelegramMessage(*update.Message)
+
+	// Check if the chat ID is allowed
+	if !hb.isChatIdAllowed(msg.Chat.ID) {
+		hb.logger.Warn(fmt.Sprintf("Received /start command from not allowed chat ID. Allowed chats IDs: %v", hb.allowlist), msg.Attrs()...)
+		msg.Text = "This is a personal Hoarder App bot. For more information, visit the original repo: https://github.com/Madh93/hoarderbot"
+	} else {
+		hb.logger.Debug("Received /start command from allowed chat ID", msg.Attrs()...)
+		// Provide detailed information about the bot
+		msg.Text = "Welcome to HoarderBot! This bot allows you to create bookmarks through messages. You can send links or text, and the bot will create bookmarks for you. Enjoy!"
+	}
+
+	// Send back the information message
+	hb.logger.Debug("Sending information message", msg.Attrs()...)
+	if err := hb.telegram.SendNewMessage(ctx, &msg); err != nil {
+		hb.logger.Error("Failed to send information message", msg.AttrsWithError(err)...)
+		return
+	}
+
+	hb.logger.Info("Sent information message", msg.Attrs()...)
 }
 
 // isChatIdAllowed checks if the chat ID is allowed to receive messages.
