@@ -56,3 +56,17 @@ func (t Telegram) DeleteOriginalMessage(ctx context.Context, msg *TelegramMessag
 
 	return nil
 }
+
+// SendMessage sends a message to a specific chat ID.
+func (t Telegram) SendMessage(ctx context.Context, chatID int64, text string) error {
+	params := &tgbotapi.SendMessageParams{
+		ChatID: chatID,
+		Text:   text,
+	}
+
+	if _, err := t.SendMessage(ctx, params); err != nil {
+		return err
+	}
+
+	return nil
+}

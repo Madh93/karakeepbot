@@ -12,6 +12,9 @@ token = "<YOUR_BOT_TOKEN_FROM_BOTFATHER>"
 # will interact with all chats.
 allowlist = []
 
+# Start message for the bot
+start_message = "Welcome to HoarderBot! This bot helps you manage your bookmarks."
+
 # ------------------------------------------
 # Hoarder configuration
 # ------------------------------------------

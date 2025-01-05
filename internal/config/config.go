@@ -1,30 +1,3 @@
-// Package config manages application configuration using the Koanf library.
-//
-// This package provides structures and functions for handling application
-// configuration settings, including configurations for Telegram, Hoarder, and
-// Logging. It uses the Koanf library to facilitate loading configuration from
-// various sources, such as files (in TOML format) and environment variables.
-//
-// The main structures include:
-//
-//   - Config: Represents the overall configuration object, containing nested
-//     configurations for Telegram, Hoarder, and Logging settings.
-//
-//   - HoarderConfig: Represents the configuration settings specific to the Hoarder
-//     server, including the URL and API token. It includes validation to ensure
-//     that the provided settings are valid.
-//
-//   - TelegramConfig: Contains the configuration for Telegram, including the bot
-//     token and an allowlist of user IDs. It also validates the token format.
-//
-//   - LoggingConfig: Holds logging configuration settings, including the log level,
-//     format, output destination, and path for log files. It includes validation
-//     to ensure the logging settings are correct and conform to allowed values.
-//
-// The package also provides a New function to create a new configuration
-// instance, initializing it with default values, loading settings from a file,
-// and processing command line parameters. It ensures that settings are
-// validated before they are used, enhancing the reliability of the application.
 package config
 
 import (
@@ -67,7 +40,8 @@ var DefaultPath = filepath.Join(os.Getenv("KO_DATA_PATH"), DefaultConfigFile)
 // DefaultConfig is the default configuration for the bot.
 var DefaultConfig = Config{
 	Telegram: TelegramConfig{
-		Allowlist: []int64(nil),
+		Allowlist:    []int64(nil),
+		StartMessage: "Welcome to HoarderBot! This bot helps you manage your bookmarks.",
 	},
 	Hoarder: HoarderConfig{
 		URL:      "http://localhost:3000",
