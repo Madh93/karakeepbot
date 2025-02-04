@@ -32,8 +32,9 @@ func createTelegram(logger *logging.Logger, config *config.TelegramConfig) *Tele
 // SendNewMessage sends a new message to the user's chat.
 func (t Telegram) SendNewMessage(ctx context.Context, msg *TelegramMessage) error {
 	params := &tgbotapi.SendMessageParams{
-		ChatID: msg.Chat.ID,
-		Text:   msg.Text,
+		ChatID:          msg.Chat.ID,
+		MessageThreadID: msg.MessageThreadID,
+		Text:            msg.Text,
 	}
 
 	if _, err := t.SendMessage(ctx, params); err != nil {

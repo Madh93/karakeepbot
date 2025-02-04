@@ -22,6 +22,10 @@ func (tm TelegramMessage) Attrs() []any {
 		"message_id", tm.ID,
 	}
 
+	if tm.IsTopicMessage {
+		attrs = append(attrs, "message_thread_id", tm.MessageThreadID)
+	}
+
 	if tm.Text != "" {
 		attrs = append(attrs, "message_text", tm.Text)
 	}
