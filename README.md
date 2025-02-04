@@ -22,7 +22,7 @@
 
 - 📄 Add **text** and **URL bookmarks** into your Hoarder instance (tested on [v0.20.0](https://github.com/hoarder-app/hoarder/releases/tag/v0.20.0)).
 - 🤖 Obtain **AI-generated tags** in **hashtag format** for easy searching on Telegram.
-- 🔒 Support **chat ID allowlist**.
+- 🔒 Support **chat ID and thread ID allowlists**.
 - 🐳 **Production-ready Docker image** for easy **deployment**.
 
 ## Requirements
@@ -74,7 +74,7 @@ docker compose up
 Download the latest binary from [the releases page](https://github.com/Madh93/hoarderbot/releases):
 
 ```sh
-curl -L https://github.com/Madh93/hoarderbot/releases/latest/download/toffu_$(uname -s)_$(uname -m).tar.gz | tar -xz -O hoarderbot > /usr/local/bin/hoarderbot
+curl -L https://github.com/Madh93/hoarderbot/releases/latest/download/hoarderbot_$(uname -s)_$(uname -m).tar.gz | tar -xz -O hoarderbot > /usr/local/bin/hoarderbot
 chmod +x /usr/local/bin/hoarderbot
 ```
 
@@ -100,7 +100,7 @@ hoarderbot -config custom.config.tml
 
 ### Overriding with environment variables
 
-Additionally, you can overridethe configuration values using environment variables that begin with the prefix `HOARDERBOT_`. This allows you to customize your setup without needing to modify any configuration file:
+Additionally, you can override the configuration values using environment variables that begin with the prefix `HOARDERBOT_`. This allows you to customize your setup without needing to modify any configuration file:
 
 ```sh
 HOARDERBOT_LOGGING_LEVEL=debug HOARDERBOT_TELEGRAM_ALLOWLIST=chat_id_1,chat_id_2 hoarderbot

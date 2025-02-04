@@ -68,6 +68,7 @@ var DefaultPath = filepath.Join(os.Getenv("KO_DATA_PATH"), DefaultConfigFile)
 var DefaultConfig = Config{
 	Telegram: TelegramConfig{
 		Allowlist: []int64(nil),
+		Threads:   []int(nil),
 	},
 	Hoarder: HoarderConfig{
 		URL:      "http://localhost:3000",
