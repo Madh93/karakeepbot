@@ -3,13 +3,13 @@ module github.com/Madh93/hoarderbot
 go 1.23.4
 
 require (
-	github.com/Madh93/go-hoarder v0.20.0
-	github.com/go-telegram/bot v1.12.1
+	github.com/Madh93/go-hoarder v0.22.0
+	github.com/go-telegram/bot v1.13.3
 	github.com/knadh/koanf/parsers/toml/v2 v2.1.0
 	github.com/knadh/koanf/providers/env v1.0.0
 	github.com/knadh/koanf/providers/file v1.1.2
 	github.com/knadh/koanf/v2 v2.1.2
-	github.com/lmittmann/tint v1.0.6
+	github.com/lmittmann/tint v1.0.7
 )
 
 require (
@@ -22,5 +22,5 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/oapi-codegen/runtime v1.1.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.3 // indirect
-	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
 )
