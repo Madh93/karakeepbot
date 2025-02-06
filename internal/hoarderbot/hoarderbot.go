@@ -32,6 +32,7 @@ type HoarderBot struct {
 	telegram     *Telegram
 	logger       *logging.Logger
 	allowlist    []int64
+	threads      []int
 	waitInterval int
 }
 
@@ -42,6 +43,7 @@ func New(logger *logging.Logger, config *Config) *HoarderBot {
 		hoarder:      createHoarder(logger, config.Hoarder),
 		telegram:     createTelegram(logger, config.Telegram),
 		allowlist:    config.Telegram.Allowlist,
+		threads:      config.Telegram.Threads,
 		waitInterval: config.Hoarder.Interval,
 		logger:       logger,
 	}
@@ -75,7 +77,14 @@ func (hb HoarderBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdate
 		hb.logger.Warn(fmt.Sprintf("Received message from not allowed chat ID. Allowed chats IDs: %v", hb.allowlist), msg.Attrs()...)
 		return
 	}
-	hb.logger.Debug("Received message from allowed chat ID", msg.Attrs()...)
+
+	// Check if the thread ID is allowed
+	if !hb.isThreadIdAllowed(msg.MessageThreadID) {
+		hb.logger.Warn(fmt.Sprintf("Received message from not allowed thread ID. Allowed thread IDs: %v", hb.threads), msg.Attrs()...)
+		return
+	}
+
+	hb.logger.Debug("Received message from allowed chat ID and allowed thread ID", msg.Attrs()...)
 
 	// Parse the message to get corresponding bookmark type
 	hb.logger.Debug("Parsing message to get corresponding bookmark type", msg.Attrs()...)
@@ -135,6 +144,11 @@ func (hb HoarderBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdate
 // isChatIdAllowed checks if the chat ID is allowed to receive messages.
 func (hb HoarderBot) isChatIdAllowed(chatId int64) bool {
 	return len(hb.allowlist) == 0 || slices.Contains(hb.allowlist, chatId)
+}
+
+// isThreadIdAllowed checks if the thread ID is allowed to receive messages.
+func (hb HoarderBot) isThreadIdAllowed(threadId int) bool {
+	return len(hb.threads) == 0 || slices.Contains(hb.threads, threadId)
 }
 
 // parseMessage parses the incoming Telegram message and returns the corresponding Bookmark type.

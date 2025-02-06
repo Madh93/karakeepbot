@@ -12,6 +12,10 @@ token = "<YOUR_BOT_TOKEN_FROM_BOTFATHER>"
 # will interact with all chats.
 allowlist = []
 
+# Allowed thread IDs (a.k.a topics) for the bot to interact with. If empty
+# (default), the bot will interact with all threads.
+threads = []
+
 # ------------------------------------------
 # Hoarder configuration
 # ------------------------------------------
