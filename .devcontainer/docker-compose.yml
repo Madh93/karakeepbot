@@ -1,6 +1,6 @@
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/go:1-1.23-bookworm
+    image: mcr.microsoft.com/devcontainers/go:1-1.24-bookworm
     container_name: devcontainer_hoarderbot
     volumes:
       - ../..:/workspaces:cached

@@ -1,7 +1,7 @@
 # Hoarderbot
 
 [![Latest release](https://img.shields.io/github/v/tag/Madh93/hoarderbot?label=Release)](https://github.com/Madh93/hoarderbot/releases)
-[![Go Version](https://img.shields.io/badge/Go-1.23-blue)](https://go.dev/doc/install)
+[![Go Version](https://img.shields.io/badge/Go-1.24-blue)](https://go.dev/doc/install)
 [![Go Reference](https://pkg.go.dev/badge/github.com/Madh93/hoarderbot.svg)](https://pkg.go.dev/github.com/Madh93/hoarderbot)
 [![License](https://img.shields.io/badge/License-MIT-brightgreen)](LICENSE)
 

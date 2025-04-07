@@ -1,7 +1,7 @@
 # This Dockerfile is only used as an example to build the application locally with Docker.
 # Production images are built with https://ko.build/
 
-FROM golang:1.23 AS build
+FROM golang:1.24 AS build
 
 ARG APP_VERSION=unknown
 ARG COMMIT_HASH=unknown
