@@ -51,6 +51,11 @@ tasks:
     cmds:
       - go get -u all && go mod tidy
 
+  bump:
+    desc: "Bump version"
+    cmds:
+      - git tag "$(svu next)"
+
   #############
   ### BUILD ###
   #############
