@@ -10,8 +10,6 @@ linters:
     - godot
 run:
   timeout: 5m
-  modules:
-    enable: true
 output:
   formats:
     - format: colored-line-number
