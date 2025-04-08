@@ -16,14 +16,14 @@ RUN go mod download
 COPY . ./
 RUN CGO_ENABLED=0 go build -trimpath -ldflags " \
     -s -w \
-    -X github.com/Madh93/hoarderbot/internal/version.appVersion=${APP_VERSION} \
-    -X github.com/Madh93/hoarderbot/internal/version.commitHash=${COMMIT_HASH}" \
-    -o bin/hoarderbot
+    -X github.com/Madh93/karakeepbot/internal/version.appVersion=${APP_VERSION} \
+    -X github.com/Madh93/karakeepbot/internal/version.commitHash=${COMMIT_HASH}" \
+    -o bin/karakeepbot
 
 FROM scratch
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /app/config.default.toml /var/run/ko/config.default.toml
-COPY --from=build /app/bin/hoarderbot .
+COPY --from=build /app/bin/karakeepbot .
 
-ENTRYPOINT ["/hoarderbot"]
+ENTRYPOINT ["/karakeepbot"]
 CMD ["-config", "/var/run/ko/config.default.toml"]

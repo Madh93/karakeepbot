@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/Madh93/hoarderbot/internal/secret"
+	"github.com/Madh93/karakeepbot/internal/secret"
 )
 
 // ValidateTelegramToken checks if the provided Telegram bot token is valid.

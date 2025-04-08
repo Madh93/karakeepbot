@@ -1,4 +1,4 @@
-module github.com/Madh93/hoarderbot
+module github.com/Madh93/karakeepbot
 
 go 1.24.1
 

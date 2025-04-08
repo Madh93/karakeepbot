@@ -9,8 +9,8 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/Madh93/hoarderbot/internal/version.appVersion=edge
-      - -X github.com/Madh93/hoarderbot/internal/version.commitHash={{ .Env.COMMIT_HASH }}
+      - -X github.com/Madh93/karakeepbot/internal/version.appVersion=edge
+      - -X github.com/Madh93/karakeepbot/internal/version.commitHash={{ .Env.COMMIT_HASH }}
 
 defaultPlatforms:
   - linux/amd64

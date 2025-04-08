@@ -6,8 +6,8 @@ tmp_dir = "tmp"
 
 [build]
 cmd = "task build:debug"
-bin = "./bin/hoarderbot-debug"
-full_bin = "dlv exec ./bin/hoarderbot-debug --listen=127.0.0.1:2345 --headless=true --api-version=2 --accept-multiclient --continue --log --"
+bin = "./bin/karakeepbot-debug"
+full_bin = "dlv exec ./bin/karakeepbot-debug --listen=127.0.0.1:2345 --headless=true --api-version=2 --accept-multiclient --continue --log --"
 include_ext = ["go"]
 exclude_dir = [".vscode", ".devcontainer", "bin", "tmp"]
 exclude_regex = ["_test.go"]

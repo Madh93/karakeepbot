@@ -1,4 +1,4 @@
-##################### Hoarderbot Configuration Defaults #####################
+##################### Karakeepbot Configuration Defaults #####################
 
 # ------------------------------------------
 # Telegram configuration
@@ -17,15 +17,15 @@ allowlist = []
 threads = []
 
 # ------------------------------------------
-# Hoarder configuration
+# Karakeep configuration
 # ------------------------------------------
-[hoarder]
+[karakeep]
 
-# Base URL of the Hoarder server
+# Base URL of the Karakeep server
 url = "http://localhost:3000"
 
-# Hoarder API key
-token = "<YOUR_HOARDER_API_KEY>"
+# Karakeep API key
+token = "<YOUR_KARAKEEP_API_KEY>"
 
 # Interval (in seconds) before retrying tagging status
 interval = 5
@@ -45,7 +45,7 @@ format = "text"
 output = "stdout"
 
 # File path for logging output (if output is a file)
-path = "hoarderbot.log"
+path = "karakeepbot.log"
 
 # Wheater enable coloring in the log messages (if format is text)
 colored = true

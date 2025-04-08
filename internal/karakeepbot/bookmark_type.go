@@ -1,4 +1,4 @@
-package hoarderbot
+package karakeepbot
 
 import (
 	"bytes"

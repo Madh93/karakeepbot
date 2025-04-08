@@ -1,11 +1,11 @@
-package hoarderbot
+package karakeepbot
 
 import (
 	"context"
 	"fmt"
 
-	"github.com/Madh93/hoarderbot/internal/config"
-	"github.com/Madh93/hoarderbot/internal/logging"
+	"github.com/Madh93/karakeepbot/internal/config"
+	"github.com/Madh93/karakeepbot/internal/logging"
 	tgbotapi "github.com/go-telegram/bot"
 )
 

@@ -1,13 +1,13 @@
 version: "3"
 
 vars:
-  APP_NAME: hoarderbot
+  APP_NAME: karakeepbot
   APP_VERSION:
     sh: git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
   COMMIT_HASH:
     sh: git rev-parse HEAD
-  LD_FLAG_VERSION: "-X github.com/Madh93/hoarderbot/internal/version.appVersion={{.APP_VERSION}}"
-  LD_FLAG_COMMIT: "-X github.com/Madh93/hoarderbot/internal/version.commitHash={{.COMMIT_HASH}}"
+  LD_FLAG_VERSION: "-X github.com/Madh93/{{.APP_NAME}}/internal/version.appVersion={{.APP_VERSION}}"
+  LD_FLAG_COMMIT: "-X github.com/Madh93/{{.APP_NAME}}/internal/version.commitHash={{.COMMIT_HASH}}"
 
 env:
   GCO_ENABLED: 0

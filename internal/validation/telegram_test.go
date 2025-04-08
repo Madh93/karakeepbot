@@ -3,7 +3,7 @@ package validation
 import (
 	"testing"
 
-	"github.com/Madh93/hoarderbot/internal/secret"
+	"github.com/Madh93/karakeepbot/internal/secret"
 )
 
 func TestValidateTelegramToken(t *testing.T) {

@@ -1,16 +1,16 @@
 // Package config manages application configuration using the Koanf library.
 //
 // This package provides structures and functions for handling application
-// configuration settings, including configurations for Telegram, Hoarder, and
+// configuration settings, including configurations for Telegram, Karakeep, and
 // Logging. It uses the Koanf library to facilitate loading configuration from
 // various sources, such as files (in TOML format) and environment variables.
 //
 // The main structures include:
 //
 //   - Config: Represents the overall configuration object, containing nested
-//     configurations for Telegram, Hoarder, and Logging settings.
+//     configurations for Telegram, Karakeep, and Logging settings.
 //
-//   - HoarderConfig: Represents the configuration settings specific to the Hoarder
+//   - KarakeepConfig: Represents the configuration settings specific to the Karakeep
 //     server, including the URL and API token. It includes validation to ensure
 //     that the provided settings are valid.
 //
@@ -35,7 +35,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/Madh93/hoarderbot/internal/version"
+	"github.com/Madh93/karakeepbot/internal/version"
 	"github.com/knadh/koanf/parsers/toml/v2"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
@@ -46,13 +46,13 @@ import (
 // designed to hold server and database configurations.
 type Config struct {
 	Telegram TelegramConfig `koanf:"telegram"` // Telegram configuration
-	Hoarder  HoarderConfig  `koanf:"hoarder"`  // Hoarder configuration
+	Karakeep KarakeepConfig `koanf:"karakeep"` // Karakeep configuration
 	Logging  LoggingConfig  `koanf:"logging"`  // Logging configuration
 	Path     string         `koanf:"path"`     // Path to the configuration file
 }
 
 // AppName is the name of the bot.
-const AppName = "hoarderbot"
+const AppName = "karakeepbot"
 
 // DefaultConfigFile is the name of the default configuration file.
 const DefaultConfigFile = "config.default.toml"
@@ -70,7 +70,7 @@ var DefaultConfig = Config{
 		Allowlist: []int64(nil),
 		Threads:   []int(nil),
 	},
-	Hoarder: HoarderConfig{
+	Karakeep: KarakeepConfig{
 		URL:      "http://localhost:3000",
 		Interval: 5,
 	},
@@ -104,7 +104,7 @@ func New() *Config {
 		config.Path = "" // Ignore configuration path if default path doesn't exist
 	}
 
-	// Configuration from environment variables (with HOARDERBOT_ prefix)
+	// Configuration from environment variables (with KARAKEEPBOT_ prefix)
 	// NOTE: This can't handle multi-word environment variables like TELEGRAM_SECRET_KEY
 	// See: https://github.com/knadh/koanf/issues/295
 	prefix := strings.ToUpper(AppName)
@@ -162,7 +162,7 @@ func validateConfig(config *Config) error {
 		log.Printf("WRN: %v", err) // Telegram Bot Token validation couldn't be be 100% reliable.
 		return nil
 	}
-	if err := config.Hoarder.Validate(); err != nil {
+	if err := config.Karakeep.Validate(); err != nil {
 		return err
 	}
 	if err := config.Logging.Validate(); err != nil {

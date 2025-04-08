@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/Madh93/hoarderbot/internal/validation"
+	"github.com/Madh93/karakeepbot/internal/validation"
 )
 
 // LoggingConfig represents a configuration for logging.

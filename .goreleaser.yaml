@@ -20,8 +20,8 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/Madh93/hoarderbot/internal/version.appVersion={{ .Version }}
-      - -X github.com/Madh93/hoarderbot/internal/version.commitHash={{ .FullCommit }}
+      - -X github.com/Madh93/karakeepbot/internal/version.appVersion={{ .Version }}
+      - -X github.com/Madh93/karakeepbot/internal/version.commitHash={{ .FullCommit }}
     goos:
       - linux
       - darwin
@@ -57,15 +57,15 @@ archives:
 kos:
   - build: binary
     repositories:
-      - ghcr.io/madh93/hoarderbot
-      - madh93/hoarderbot
+      - ghcr.io/madh93/karakeepbot
+      - madh93/karakeepbot
     tags:
       - "{{ .Version }}"
       - latest
     labels:
       org.opencontainers.image.authors: Madh93
       org.opencontainers.image.created: "{{ .Date }}"
-      org.opencontainers.image.description: Telegram Bot for saving bookmarks to Hoarder
+      org.opencontainers.image.description: Telegram Bot for saving bookmarks to Karakeep
       org.opencontainers.image.licenses: MIT
       org.opencontainers.image.source: "{{ .GitURL }}"
       org.opencontainers.image.revision: "{{ .FullCommit }}"
@@ -98,7 +98,7 @@ release:
   draft: true
   github:
     owner: Madh93
-    name: hoarderbot
+    name: karakeepbot
   footer: >-
 
     ---

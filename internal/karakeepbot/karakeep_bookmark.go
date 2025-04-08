@@ -1,4 +1,4 @@
-package hoarderbot
+package karakeepbot
 
 import (
 	"strings"
@@ -6,28 +6,28 @@ import (
 	"github.com/Madh93/go-karakeep"
 )
 
-// HoarderBookmark represents a bookmark received from the hoarder API.
-type HoarderBookmark karakeep.Bookmark
+// KarakeepBookmark represents a bookmark received from the karakeep API.
+type KarakeepBookmark karakeep.Bookmark
 
 // Attrs returns a slice of logging attributes for the bookmark.
-func (hb HoarderBookmark) Attrs() []any {
+func (kb KarakeepBookmark) Attrs() []any {
 	return []any{
-		"scope", "hoarder",
-		"bookmark_id", hb.Id,
-		"tagging_status", *hb.TaggingStatus,
+		"scope", "karakeep",
+		"bookmark_id", kb.Id,
+		"tagging_status", *kb.TaggingStatus,
 	}
 }
 
 // AttrsWithError returns a slice of logging attributes for the bookmark with an
 // error.
-func (hb HoarderBookmark) AttrsWithError(err error) []any {
-	return append(hb.Attrs(), "error", err)
+func (kb KarakeepBookmark) AttrsWithError(err error) []any {
+	return append(kb.Attrs(), "error", err)
 }
 
 // Hashtags returns a string of hashtags associated with the bookmark.
-func (hb HoarderBookmark) Hashtags() string {
+func (kb KarakeepBookmark) Hashtags() string {
 	var tags []string
-	for _, tag := range hb.Tags {
+	for _, tag := range kb.Tags {
 		name := sanitizeTag(tag.Name)
 		tags = append(tags, "#"+name)
 	}

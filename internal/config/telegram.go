@@ -1,8 +1,8 @@
 package config
 
 import (
-	"github.com/Madh93/hoarderbot/internal/secret"
-	"github.com/Madh93/hoarderbot/internal/validation"
+	"github.com/Madh93/karakeepbot/internal/secret"
+	"github.com/Madh93/karakeepbot/internal/validation"
 )
 
 // TelegramConfig represents a configuration for Telegram.

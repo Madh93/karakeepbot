@@ -20,7 +20,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/Madh93/hoarderbot/internal/config"
+	"github.com/Madh93/karakeepbot/internal/config"
 	"github.com/lmittmann/tint"
 )
 

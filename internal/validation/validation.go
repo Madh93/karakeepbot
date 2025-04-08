@@ -5,7 +5,7 @@
 // adheres to defined formats and constraints. Specifically, it provides the
 // following validation functions:
 //
-//   - ValidateHoarderToken: Validates the format of the Hoarder API Key,
+//   - ValidateKarakeepToken: Validates the format of the Karakeep API Key,
 //     ensuring it follows the expected pattern of `ak1_{20_hex_characters}_{20_hex_characters}`.
 //
 //   - ValidateTelegramToken: Validates the format of a Telegram bot token,

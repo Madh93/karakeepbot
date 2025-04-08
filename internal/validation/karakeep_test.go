@@ -3,10 +3,10 @@ package validation
 import (
 	"testing"
 
-	"github.com/Madh93/hoarderbot/internal/secret"
+	"github.com/Madh93/karakeepbot/internal/secret"
 )
 
-func TestValidateHoarderToken(t *testing.T) {
+func TestValidateKarakeepToken(t *testing.T) {
 	// Define test cases
 	tests := []struct {
 		token    secret.String
@@ -23,7 +23,7 @@ func TestValidateHoarderToken(t *testing.T) {
 
 	// Iterate over the test cases
 	for _, test := range tests {
-		err := ValidateHoarderToken(test.token)
+		err := ValidateKarakeepToken(test.token)
 		got := err == nil
 		if got != test.expected {
 			t.Errorf("For token: %q, expected error: %v, but got: %v", test.token.Value(), test.expected, got)
