@@ -5,3 +5,19 @@ services:
     volumes:
       - ../..:/workspaces:cached
     command: sleep infinity
+
+  karakeep:
+    image: ghcr.io/karakeep-app/karakeep:0.23.1
+    container_name: devcontainer_karakeep
+    volumes:
+      - karakeep_data:/data
+    env_file:
+      - .env
+    environment:
+      DATA_DIR: /data
+      NEXTAUTH_SECRET: super_random_string
+    ports:
+      - 3000:3000
+
+volumes:
+  karakeep_data:

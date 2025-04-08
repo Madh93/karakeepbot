@@ -3,15 +3,18 @@
 {
   "name": "hoarderbot",
   "dockerComposeFile": "docker-compose.yml",
-	"service": "app",
+  "service": "app",
   "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-	"features": {
-		"ghcr.io/devcontainers-extra/features/dasel-asdf:2": {},
-		"ghcr.io/devcontainers-extra/features/fzf:1": {},
+  "forwardPorts": [
+    "karakeep:3000"
+  ],
+  "features": {
+    "ghcr.io/devcontainers-extra/features/dasel-asdf:2": {},
+    "ghcr.io/devcontainers-extra/features/fzf:1": {},
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
-	},
+  },
   "postCreateCommand": "(cut -d' ' -f1 .tool-versions | xargs -i asdf plugin add {}) && asdf install",
-	"customizations": {
+  "customizations": {
     "vscode": {
       "extensions": [
         "EditorConfig.EditorConfig",
