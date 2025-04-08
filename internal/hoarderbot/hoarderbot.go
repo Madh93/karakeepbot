@@ -13,7 +13,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/Madh93/go-hoarder"
+	"github.com/Madh93/go-karakeep"
 	"github.com/Madh93/hoarderbot/internal/config"
 	"github.com/Madh93/hoarderbot/internal/logging"
 	"github.com/Madh93/hoarderbot/internal/validation"
@@ -111,9 +111,9 @@ func (hb HoarderBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdate
 			hb.logger.Error("Failed to retrieve bookmark", "error", err)
 			return
 		}
-		if *bookmark.TaggingStatus == hoarder.Success {
+		if *bookmark.TaggingStatus == karakeep.Success {
 			break
-		} else if *bookmark.TaggingStatus == hoarder.Failure {
+		} else if *bookmark.TaggingStatus == karakeep.Failure {
 			hb.logger.Error("Failed to update bookmark tags", bookmark.AttrsWithError(err)...)
 			return
 		}

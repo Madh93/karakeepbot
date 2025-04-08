@@ -3,7 +3,7 @@ module github.com/Madh93/hoarderbot
 go 1.24.1
 
 require (
-	github.com/Madh93/go-hoarder v0.23.0
+	github.com/Madh93/go-karakeep v0.23.1
 	github.com/go-telegram/bot v1.14.1
 	github.com/knadh/koanf/parsers/toml/v2 v2.1.0
 	github.com/knadh/koanf/providers/env v1.0.0

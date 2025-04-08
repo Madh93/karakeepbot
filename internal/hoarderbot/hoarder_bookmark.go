@@ -3,11 +3,11 @@ package hoarderbot
 import (
 	"strings"
 
-	"github.com/Madh93/go-hoarder"
+	"github.com/Madh93/go-karakeep"
 )
 
 // HoarderBookmark represents a bookmark received from the hoarder API.
-type HoarderBookmark hoarder.Bookmark
+type HoarderBookmark karakeep.Bookmark
 
 // Attrs returns a slice of logging attributes for the bookmark.
 func (hb HoarderBookmark) Attrs() []any {

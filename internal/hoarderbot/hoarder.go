@@ -6,14 +6,14 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/Madh93/go-hoarder"
+	"github.com/Madh93/go-karakeep"
 	"github.com/Madh93/hoarderbot/internal/config"
 	"github.com/Madh93/hoarderbot/internal/logging"
 )
 
 // Hoarder embeds the Hoarder API Client to add high level functionality.
 type Hoarder struct {
-	*hoarder.ClientWithResponses
+	*karakeep.ClientWithResponses
 }
 
 // createHoarder initializes the Hoarder API Client.
@@ -36,7 +36,7 @@ func createHoarder(logger *logging.Logger, config *config.HoarderConfig) *Hoarde
 		return nil
 	}
 
-	hoarderClient, err := hoarder.NewClientWithResponses(parsedURL.String(), hoarder.WithRequestEditorFn(auth))
+	hoarderClient, err := karakeep.NewClientWithResponses(parsedURL.String(), karakeep.WithRequestEditorFn(auth))
 	if err != nil {
 		logger.Fatal("Error creating Hoarder API client.", "error", err)
 	}
