@@ -23,10 +23,12 @@ func main() {
 	}
 
 	// Setup karakeepbot
-	karakeepbot := karakeepbot.New(logger, &karakeepbot.Config{
+	botConfig := &karakeepbot.Config{
 		Karakeep: &config.Karakeep,
 		Telegram: &config.Telegram,
-	})
+		TempDir:  config.TempDir, // Pass the TempDir from the main config
+	}
+	karakeepbot := karakeepbot.New(logger, botConfig)
 
 	// Let's go
 	logger.Info("3, 2, 1...  Launching Karakeepbot... 🚀")

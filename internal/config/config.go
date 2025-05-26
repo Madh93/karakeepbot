@@ -49,6 +49,7 @@ type Config struct {
 	Karakeep KarakeepConfig `koanf:"karakeep"` // Karakeep configuration
 	Logging  LoggingConfig  `koanf:"logging"`  // Logging configuration
 	Path     string         `koanf:"path"`     // Path to the configuration file
+	TempDir  string         `koanf:"tempdir"`  // New field for temporary directory
 }
 
 // AppName is the name of the bot.
@@ -81,7 +82,8 @@ var DefaultConfig = Config{
 		Path:    AppName + ".log",
 		Colored: true,
 	},
-	Path: DefaultPath,
+	Path:    DefaultPath,
+	TempDir: filepath.Join(os.TempDir(), AppName, "temp_images"), // Default temporary directory
 }
 
 // New returns a new config instance. This initializes the default configuration
@@ -138,6 +140,10 @@ func parseCommandLineFlags(config *Config) {
 	f := flag.NewFlagSet(AppName, flag.ExitOnError)
 
 	f.StringVar(&config.Path, "config", DefaultPath, "Custom configuration file")
+	// The DefaultConfig.TempDir is used as the default for the flag.
+	// config.TempDir will already be set to this value when parseCommandLineFlags is called
+	// because 'config' is initialized with DefaultConfig before this function.
+	f.StringVar(&config.TempDir, "tempdir", DefaultConfig.TempDir, "Directory for temporary file storage")
 	showVersion := f.Bool("version", false, "Show version information")
 	showHelp := f.Bool("help", false, "Show help information")
 
@@ -167,6 +173,14 @@ func validateConfig(config *Config) error {
 	}
 	if err := config.Logging.Validate(); err != nil {
 		return err
+	}
+	if strings.TrimSpace(config.TempDir) == "" {
+		// return errors.New("tempdir path cannot be empty")
+		// For now, let's log a warning and use the default if it's empty,
+		// or rely on later checks when the directory is actually used.
+		// This avoids a hard crash if the config is somehow malformed to empty.
+		// Alternatively, to strictly enforce it:
+		return fmt.Errorf("tempdir path cannot be empty")
 	}
 	return nil
 }
