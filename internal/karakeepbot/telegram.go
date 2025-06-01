@@ -41,7 +41,7 @@ func (t Telegram) SendNewMessage(ctx context.Context, msg *TelegramMessage) erro
 		ChatID:          msg.Chat.ID,
 		MessageThreadID: msg.MessageThreadID,
 		Text:            msg.Text,
-		ParseMode:       models.ParseModeMarkdown,
+		Entities:        msg.Entities,
 	}
 
 	if _, err := t.SendMessage(ctx, params); err != nil {
@@ -65,8 +65,8 @@ func (t Telegram) SendNewPhoto(ctx context.Context, msg *TelegramMessage) error 
 		ChatID:          msg.Chat.ID,
 		MessageThreadID: msg.MessageThreadID,
 		Photo:           &models.InputFileString{Data: photo[0].FileID},
-		Caption:         msg.Text,
-		ParseMode:       models.ParseModeMarkdown,
+		Caption:         msg.Caption,
+		CaptionEntities: msg.CaptionEntities,
 	}); err != nil {
 		return err
 	}

@@ -152,7 +152,12 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 	}
 
 	// Add tags
-	msg.Text = b.Text + "\n\n" + bookmark.Hashtags()
+	switch {
+	case msg.Text != "":
+		msg.Text = msg.Text + "\n\n" + bookmark.Hashtags()
+	case msg.Caption != "":
+		msg.Caption = msg.Caption + "\n\n" + bookmark.Hashtags()
+	}
 
 	// Send back new message with tags
 	kb.logger.Debug("Sending updated message with tags", msg.Attrs()...)
