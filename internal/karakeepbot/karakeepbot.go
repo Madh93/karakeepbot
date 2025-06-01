@@ -5,6 +5,7 @@
 package karakeepbot
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -15,8 +16,11 @@ import (
 
 	"github.com/Madh93/go-karakeep"
 	"github.com/Madh93/karakeepbot/internal/config"
+	"github.com/Madh93/karakeepbot/internal/kkprivate"
 	"github.com/Madh93/karakeepbot/internal/logging"
+	"github.com/Madh93/karakeepbot/internal/markdown"
 	"github.com/Madh93/karakeepbot/internal/validation"
+	"github.com/go-telegram/bot/models"
 )
 
 // Config holds the configuration for the KarakeepBot.
@@ -86,22 +90,48 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 
 	kb.logger.Debug("Received message from allowed chat ID and allowed thread ID", msg.Attrs()...)
 
-	// Parse the message to get corresponding bookmark type
+	// Look into the message to build the corresponding bookmark
 	kb.logger.Debug("Parsing message to get corresponding bookmark type", msg.Attrs()...)
-	b, err := parseMessage(msg)
+	b, err := makeBookmark(msg)
 	if err != nil {
-		kb.logger.Error("Failed to parse message", msg.AttrsWithError(err)...)
+		kb.logger.Error("Failed to make bookmark", msg.AttrsWithError(err)...)
+		return
+	}
+
+	createRequest, err := b.JSONReader()
+	if err != nil {
+		kb.logger.Error("Failed to make bookmark create request", msg.AttrsWithError(err)...)
 		return
 	}
 
 	// Create the bookmark
 	kb.logger.Debug(fmt.Sprintf("Creating bookmark of type %s", b))
-	bookmark, err := kb.karakeep.CreateBookmark(ctx, b)
+	bookmark, err := kb.karakeep.CreateBookmark(ctx, createRequest)
 	if err != nil {
 		kb.logger.Error("Failed to create bookmark", "error", err)
 		return
 	}
 	kb.logger.Info("Created bookmark", bookmark.Attrs()...)
+
+	// Upload asset, if any.
+	if len(msg.Photo) != 0 {
+		asset, err := kb.uploadPhoto(ctx, msg.Photo)
+		if err != nil {
+			kb.logger.Error("Failed to create an asset", "error", err)
+			return
+		}
+		if err := kb.karakeep.AttachAssetToBookmark(
+			ctx,
+			bookmark.Id,
+			karakeep.PostBookmarksBookmarkIdAssetsJSONRequestBody{
+				AssetType: karakeep.BannerImage,
+				Id:        asset.AssetID,
+			},
+		); err != nil {
+			kb.logger.Error("Failed to attach an asset to bookmark", "error", err)
+			return
+		}
+	}
 
 	// Wait until bookmark tags are updated
 	kb.logger.Debug("Waiting for bookmark tags to be updated", bookmark.Attrs()...)
@@ -122,11 +152,16 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 	}
 
 	// Add tags
-	msg.Text = msg.Text + "\n\n" + bookmark.Hashtags()
+	msg.Text = b.Text + "\n\n" + bookmark.Hashtags()
 
 	// Send back new message with tags
 	kb.logger.Debug("Sending updated message with tags", msg.Attrs()...)
-	if err := kb.telegram.SendNewMessage(ctx, &msg); err != nil {
+	if len(msg.Photo) == 0 {
+		err = kb.telegram.SendNewMessage(ctx, &msg)
+	} else {
+		err = kb.telegram.SendNewPhoto(ctx, &msg)
+	}
+	if err != nil {
 		kb.logger.Error("Failed to send new message", msg.AttrsWithError(err)...)
 		return
 	}
@@ -151,14 +186,56 @@ func (kb KarakeepBot) isThreadIdAllowed(threadId int) bool {
 	return len(kb.threads) == 0 || slices.Contains(kb.threads, threadId)
 }
 
-// parseMessage parses the incoming Telegram message and returns the corresponding Bookmark type.
-func parseMessage(msg TelegramMessage) (BookmarkType, error) {
+func (kb KarakeepBot) uploadPhoto(
+	ctx context.Context,
+	photo []models.PhotoSize,
+) (*kkprivate.Asset, error) {
+	photo = slices.Clone(photo)
+	slices.SortFunc(
+		photo,
+		func(s1, s2 models.PhotoSize) int {
+			return cmp.Compare(s2.Width*s2.Height, s1.Width*s1.Height)
+		},
+	)
+
+	file, err := kb.telegram.DownloadFile(ctx, photo[0].FileID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make a request to download a file: %w", err)
+	}
+	defer file.Close()
+
+	asset, err := kb.karakeep.Private.CreateAsset(file)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create an asset: %w", err)
+	}
+
+	return asset, nil
+}
+
+// makeBookmark looks into the incoming Telegram message and builds the
+// corresponding Bookmark.
+func makeBookmark(msg TelegramMessage) (*Bookmark, error) {
 	switch {
 	case validation.ValidateURL(msg.Text) == nil:
-		return NewLinkBookmark(msg.Text), nil
+		return &Bookmark{
+			Type: BookmarkTypeLink,
+			URL:  msg.Text,
+		}, nil
 	case msg.Text != "":
-		return NewTextBookmark(msg.Text), nil
+		b := &Bookmark{
+			Type: BookmarkTypeText,
+			Text: msg.Text,
+		}
+		b.Text = markdown.EncodeURLs(b.Text, msg.Entities)
+		return b, nil
+	case msg.Caption != "" && len(msg.Photo) != 0:
+		b := &Bookmark{
+			Type: BookmarkTypeText,
+			Text: msg.Caption,
+		}
+		b.Text = markdown.EncodeURLs(b.Text, msg.CaptionEntities)
+		return b, nil
 	default:
-		return nil, errors.New("unsupported bookmark type")
+		return nil, errors.New("unsupported message")
 	}
 }

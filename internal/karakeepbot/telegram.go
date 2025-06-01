@@ -1,12 +1,18 @@
 package karakeepbot
 
 import (
+	"cmp"
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"slices"
 
 	"github.com/Madh93/karakeepbot/internal/config"
 	"github.com/Madh93/karakeepbot/internal/logging"
+	"github.com/go-telegram/bot"
 	tgbotapi "github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 )
 
 // Bot is an alias for tgbotapi.Bot.
@@ -35,9 +41,33 @@ func (t Telegram) SendNewMessage(ctx context.Context, msg *TelegramMessage) erro
 		ChatID:          msg.Chat.ID,
 		MessageThreadID: msg.MessageThreadID,
 		Text:            msg.Text,
+		ParseMode:       models.ParseModeMarkdown,
 	}
 
 	if _, err := t.SendMessage(ctx, params); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SendNewPhoto sends a new photo to the user's chat.
+func (t Telegram) SendNewPhoto(ctx context.Context, msg *TelegramMessage) error {
+	photo := slices.Clone(msg.Photo)
+	slices.SortFunc(
+		photo,
+		func(s1, s2 models.PhotoSize) int {
+			return cmp.Compare(s2.Width*s2.Height, s1.Width*s1.Height)
+		},
+	)
+
+	if _, err := t.SendPhoto(ctx, &tgbotapi.SendPhotoParams{
+		ChatID:          msg.Chat.ID,
+		MessageThreadID: msg.MessageThreadID,
+		Photo:           &models.InputFileString{Data: photo[0].FileID},
+		Caption:         msg.Text,
+		ParseMode:       models.ParseModeMarkdown,
+	}); err != nil {
 		return err
 	}
 
@@ -56,4 +86,26 @@ func (t Telegram) DeleteOriginalMessage(ctx context.Context, msg *TelegramMessag
 	}
 
 	return nil
+}
+
+func (t Telegram) DownloadFile(ctx context.Context, fileID string) (io.ReadCloser, error) {
+	file, err := t.GetFile(ctx, &bot.GetFileParams{
+		FileID: fileID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to call GetFile: %w", err)
+	}
+
+	resp, err := http.Get(
+		fmt.Sprintf(
+			"https://api.telegram.org/file/bot%s/%s",
+			t.Token(),
+			file.FilePath,
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make a request to download a file: %w", err)
+	}
+
+	return resp.Body, nil
 }
