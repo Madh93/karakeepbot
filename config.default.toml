@@ -8,9 +8,11 @@
 # Telegram bot token
 token = "<YOUR_BOT_TOKEN_FROM_BOTFATHER>"
 
-# Allowed chat IDs for the bot to interact with. If empty (default), the bot
-# will interact with all chats.
-allowlist = []
+# Allowed chat IDs for the bot to interact with. It is strongly recommended to
+# set this to your personal chat ID to prevent abuse. The bot will not start
+# with the default value. You can get your chat ID by talking to @userinfobot on
+# Telegram. If empty, the bot will interact with all chats.
+allowlist = [-1]
 
 # Allowed thread IDs (a.k.a topics) for the bot to interact with. If empty
 # (default), the bot will interact with all threads.
