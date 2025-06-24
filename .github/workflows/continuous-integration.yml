@@ -29,11 +29,11 @@ jobs:
         run: go test ./...
 
       - name: Linter
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: v1.64.7
+          version: v2.1.6
 
-      - uses: ko-build/setup-ko@v0.8
+      - uses: ko-build/setup-ko@v0.9
 
       - name: Push
         env:

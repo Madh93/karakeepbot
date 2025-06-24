@@ -29,7 +29,7 @@ func main() {
 	})
 
 	// Let's go
-	logger.Info("3, 2, 1...  Launching Karakeepbot... 🚀")
+	logger.Info("3, 2, 1... Launching Karakeepbot... 🚀")
 	if err := karakeepbot.Run(); err != nil {
 		logger.Fatal("💥 Something went wrong.", "error", err)
 	}

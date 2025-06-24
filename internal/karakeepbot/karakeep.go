@@ -71,7 +71,7 @@ func (k Karakeep) CreateBookmark(ctx context.Context, b BookmarkType) (*Karakeep
 // RetrieveBookmarkById retrieves a bookmark by its ID.
 func (k Karakeep) RetrieveBookmarkById(ctx context.Context, id string) (*KarakeepBookmark, error) {
 	// Retrieve bookmark
-	response, err := k.GetBookmarksBookmarkIdWithResponse(ctx, id)
+	response, err := k.GetBookmarksBookmarkIdWithResponse(ctx, id, nil)
 	if err != nil {
 		return nil, err
 	}

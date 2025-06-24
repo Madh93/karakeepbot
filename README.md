@@ -20,7 +20,7 @@
 
 ## Features
 
-- 📄 Add **text** and **URL bookmarks** into your Karakeep instance (tested on [v0.20.0](https://github.com/karakeep-app/karakeep/releases/tag/v0.20.0)).
+- 📄 Add **text** and **URL bookmarks** into your Karakeep instance (tested on [v0.25.0](https://github.com/karakeep-app/karakeep/releases/tag/v0.25.0)).
 - 🤖 Obtain **AI-generated tags** in **hashtag format** for easy searching on Telegram.
 - 🔒 Support **chat ID and thread ID allowlists**.
 - 🐳 **Production-ready Docker image** for easy **deployment**.

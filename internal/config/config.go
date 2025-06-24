@@ -110,7 +110,7 @@ func New() *Config {
 	prefix := strings.ToUpper(AppName)
 	if err := k.Load(env.ProviderWithValue(prefix, ".", func(s string, v string) (string, interface{}) {
 		// Strip out the prefix, lowercase and using . as key delimiter.
-		key := strings.Replace(strings.ToLower(strings.TrimPrefix(s, prefix+"_")), "_", ".", -1)
+		key := strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, prefix+"_")), "_", ".")
 		// Split comma-separated values into a slice.
 		if strings.Contains(v, ",") {
 			return key, strings.Split(v, ",")
