@@ -67,7 +67,7 @@ var DefaultPath = filepath.Join(os.Getenv("KO_DATA_PATH"), DefaultConfigFile)
 // DefaultConfig is the default configuration for the bot.
 var DefaultConfig = Config{
 	Telegram: TelegramConfig{
-		Allowlist: []int64(nil),
+		Allowlist: []int64{-1}, // Enforce allowlist by default.
 		Threads:   []int(nil),
 	},
 	Karakeep: KarakeepConfig{
@@ -159,8 +159,7 @@ func parseCommandLineFlags(config *Config) {
 // validateConfig checks the validity of the configuration.
 func validateConfig(config *Config) error {
 	if err := config.Telegram.Validate(); err != nil {
-		log.Printf("WRN: %v", err) // Telegram Bot Token validation couldn't be be 100% reliable.
-		return nil
+		return err
 	}
 	if err := config.Karakeep.Validate(); err != nil {
 		return err
