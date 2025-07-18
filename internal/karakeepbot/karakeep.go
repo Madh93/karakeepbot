@@ -47,7 +47,7 @@ func createKarakeep(logger *logging.Logger, config *config.KarakeepConfig) *Kara
 // CreateBookmark creates a new bookmark in Karakeep.
 func (k Karakeep) CreateBookmark(ctx context.Context, b BookmarkType) (*KarakeepBookmark, error) {
 	// Parse the JSON body of the request
-	body, err := b.ToJSONReader()
+	body, err := ToJSONReader(b)
 	if err != nil {
 		return nil, err
 	}

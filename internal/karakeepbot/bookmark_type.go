@@ -3,68 +3,95 @@ package karakeepbot
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 )
 
-// BookmarkType is an interface that represents a bookmark.
+// AssetType defines the type of an asset bookmark.
+type AssetType string
+
+const (
+	// ImageAssetType represents an image asset.
+	ImageAssetType AssetType = "image"
+)
+
+// BookmarkType is an interface that represents any type of bookmark.
+// It is useful for handling different bookmark types polymorphically.
 type BookmarkType interface {
 	String() string
-	ToJSONReader() (io.Reader, error)
+}
+
+// Bookmark is a base struct embedded in other bookmark types
+// to share common fields.
+type Bookmark struct {
+	Type string `json:"type"`
 }
 
 // LinkBookmark represents a bookmark with a URL.
 type LinkBookmark struct {
-	Type string `json:"type"`
-	URL  string `json:"url"`
+	Bookmark
+	URL string `json:"url"`
 }
 
 // NewLinkBookmark creates a new LinkBookmark with the given URL.
 func NewLinkBookmark(url string) *LinkBookmark {
 	return &LinkBookmark{
-		Type: "link",
-		URL:  url,
+		Bookmark: Bookmark{Type: "link"},
+		URL:      url,
 	}
 }
 
-// String returns the string representation of the bookmark.
+// String returns a human-readable representation of the LinkBookmark.
 func (lb LinkBookmark) String() string {
-	return "LinkBookmark"
-}
-
-// ToJSONReader returns a JSON reader for the bookmark.
-func (lb LinkBookmark) ToJSONReader() (io.Reader, error) {
-	return toJSONReader(lb)
+	return fmt.Sprintf("LinkBookmark (URL: %s)", lb.URL)
 }
 
 // TextBookmark represents a bookmark with text content.
 type TextBookmark struct {
-	Type string `json:"type"`
+	Bookmark
 	Text string `json:"text"`
 }
 
 // NewTextBookmark creates a new TextBookmark with the given text content.
 func NewTextBookmark(text string) *TextBookmark {
 	return &TextBookmark{
-		Type: "text",
-		Text: text,
+		Bookmark: Bookmark{Type: "text"},
+		Text:     text,
 	}
 }
 
-// String returns the string representation of the bookmark.
+// String returns a human-readable representation of the TextBookmark.
 func (tb TextBookmark) String() string {
-	return "TextBookmark"
+	return fmt.Sprintf("TextBookmark (Text: %.30s...)", tb.Text)
 }
 
-// ToJSONReader returns a JSON reader for the bookmark.
-func (tb TextBookmark) ToJSONReader() (io.Reader, error) {
-	return toJSONReader(tb)
+// AssetBookmark represents a bookmark with an asset.
+type AssetBookmark struct {
+	Bookmark
+	AssetID   string    `json:"assetId"`
+	AssetType AssetType `json:"assetType"`
 }
 
-// toJSONReader converts a bookmark to JSON and returns an io.Reader.
-func toJSONReader(b BookmarkType) (io.Reader, error) {
+// NewAssetBookmark creates a new AssetBookmark for a given asset.
+func NewAssetBookmark(assetID string, assetType AssetType) *AssetBookmark {
+	return &AssetBookmark{
+		Bookmark:  Bookmark{Type: "asset"},
+		AssetID:   assetID,
+		AssetType: assetType,
+	}
+}
+
+// String returns a human-readable representation of the AssetBookmark.
+func (ab AssetBookmark) String() string {
+	return fmt.Sprintf("AssetBookmark (Type: %s, ID: %s)", ab.AssetType, ab.AssetID)
+}
+
+// ToJSONReader converts any BookmarkType into an io.Reader containing its
+// JSON representation.
+func ToJSONReader(b BookmarkType) (io.Reader, error) {
 	data, err := json.Marshal(b)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to marshal bookmark to JSON: %w", err)
 	}
 	return bytes.NewReader(data), nil
 }
