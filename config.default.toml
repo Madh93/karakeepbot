@@ -51,3 +51,22 @@ path = "karakeepbot.log"
 
 # Wheater enable coloring in the log messages (if format is text)
 colored = true
+
+# ------------------------------------------
+# File Processor configuration
+# ------------------------------------------
+[fileprocessor]
+
+# Temporary directory for storing downloaded files. If empty, the system's
+# default temporary directory will be used.
+tempdir = ""
+
+# Maximum allowed file size in bytes (default: 10485760, which is 10MB)
+maxsize = 10485760
+
+# Allowed MIME types for file download/uploads. If the list is empty, no
+# validation will be performed on the file type.
+mimetypes = ["image/jpeg", "image/png", "image/webp"]
+
+# Maximum time to wait for file download in seconds (default: 30)
+timeout = 30

@@ -21,6 +21,10 @@
 //     format, output destination, and path for log files. It includes validation
 //     to ensure the logging settings are correct and conform to allowed values.
 //
+//   - FileProcessorConfig: Manages settings for file handling, such as download
+//     timeouts, maximum file sizes, and the temporary directory for storing
+//     files.
+//
 // The package also provides a New function to create a new configuration
 // instance, initializing it with default values, loading settings from a file,
 // and processing command line parameters. It ensures that settings are
@@ -45,10 +49,11 @@ import (
 // Config represents a configuration object. This type is
 // designed to hold server and database configurations.
 type Config struct {
-	Telegram TelegramConfig `koanf:"telegram"` // Telegram configuration
-	Karakeep KarakeepConfig `koanf:"karakeep"` // Karakeep configuration
-	Logging  LoggingConfig  `koanf:"logging"`  // Logging configuration
-	Path     string         `koanf:"path"`     // Path to the configuration file
+	Telegram      TelegramConfig      `koanf:"telegram"`      // Telegram configuration
+	Karakeep      KarakeepConfig      `koanf:"karakeep"`      // Karakeep configuration
+	Logging       LoggingConfig       `koanf:"logging"`       // Logging configuration
+	FileProcessor FileProcessorConfig `koanf:"fileprocessor"` // File processor configuration
+	Path          string              `koanf:"path"`          // Path to the configuration file
 }
 
 // AppName is the name of the bot.
@@ -72,7 +77,7 @@ var DefaultConfig = Config{
 	},
 	Karakeep: KarakeepConfig{
 		URL:      "http://localhost:3000",
-		Interval: 5,
+		Interval: 5, // In seconds
 	},
 	Logging: LoggingConfig{
 		Level:   "info",
@@ -80,6 +85,17 @@ var DefaultConfig = Config{
 		Output:  "stdout",
 		Path:    AppName + ".log",
 		Colored: true,
+	},
+	FileProcessor: FileProcessorConfig{
+		Tempdir: "",               // Empty means use OS default
+		Maxsize: 10 * 1024 * 1024, // 10 MB
+		Mimetypes: []string{
+			// Supported Image Assets (More info at: https://github.com/karakeep-app/karakeep/blob/5b520667e8c0cc9003234611b3f26bb156f1a20a/packages/shared/assetdb.ts#L11)
+			"image/jpeg",
+			"image/png",
+			"image/webp",
+		},
+		Timeout: 30, // In seconds
 	},
 	Path: DefaultPath,
 }
