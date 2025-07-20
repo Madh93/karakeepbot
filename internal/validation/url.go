@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 )
 
 // ValidateURL checks if the given URL is valid based on valid HTTP/HTTPS schemes.
@@ -17,13 +18,7 @@ func ValidateURL(rawURL string) error {
 	}
 
 	// Check if the scheme is in the list of valid schemes
-	isValidScheme := false
-	for _, scheme := range validSchemes {
-		if parsedURL.Scheme == scheme {
-			isValidScheme = true
-			break
-		}
-	}
+	isValidScheme := slices.Contains(validSchemes, parsedURL.Scheme)
 
 	if !isValidScheme {
 		return fmt.Errorf("URL scheme must be one of: %v", validSchemes)

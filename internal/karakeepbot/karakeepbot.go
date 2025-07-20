@@ -141,9 +141,9 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 			kb.logger.Error("Failed to retrieve bookmark", "error", err)
 			return
 		}
-		if *bookmark.TaggingStatus == karakeep.Success {
+		if *bookmark.TaggingStatus == karakeep.BookmarkTaggingStatusSuccess {
 			break
-		} else if *bookmark.TaggingStatus == karakeep.Failure {
+		} else if *bookmark.TaggingStatus == karakeep.BookmarkTaggingStatusFailure {
 			kb.logger.Error("Failed to update bookmark tags", bookmark.AttrsWithError(err)...)
 			return
 		}

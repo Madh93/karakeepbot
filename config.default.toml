@@ -8,9 +8,11 @@
 # Telegram bot token
 token = "<YOUR_BOT_TOKEN_FROM_BOTFATHER>"
 
-# Allowed chat IDs for the bot to interact with. If empty (default), the bot
-# will interact with all chats.
-allowlist = []
+# Allowed chat IDs for the bot to interact with. It is strongly recommended to
+# set this to your personal chat ID to prevent abuse. The bot will not start
+# with the default value. You can get your chat ID by talking to @userinfobot on
+# Telegram. If empty, the bot will interact with all chats.
+allowlist = [-1]
 
 # Allowed thread IDs (a.k.a topics) for the bot to interact with. If empty
 # (default), the bot will interact with all threads.
@@ -49,3 +51,22 @@ path = "karakeepbot.log"
 
 # Wheater enable coloring in the log messages (if format is text)
 colored = true
+
+# ------------------------------------------
+# File Processor configuration
+# ------------------------------------------
+[fileprocessor]
+
+# Temporary directory for storing downloaded files. If empty, the system's
+# default temporary directory will be used.
+tempdir = ""
+
+# Maximum allowed file size in bytes (default: 10485760, which is 10MB)
+maxsize = 10485760
+
+# Allowed MIME types for file download/uploads. If the list is empty, no
+# validation will be performed on the file type.
+mimetypes = ["image/jpeg", "image/png", "image/webp"]
+
+# Maximum time to wait for file download in seconds (default: 30)
+timeout = 30

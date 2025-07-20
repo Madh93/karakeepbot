@@ -24,14 +24,13 @@ package validation
 
 import (
 	"fmt"
+	"slices"
 )
 
 // Validate checks if the provided value is in the list of valid options.
 func Validate[T comparable](value T, validOptions []T) error {
-	for _, validOption := range validOptions {
-		if value == validOption {
-			return nil
-		}
+	if slices.Contains(validOptions, value) {
+		return nil
 	}
 	return fmt.Errorf("invalid value: %v", value)
 }
