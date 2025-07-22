@@ -19,12 +19,6 @@ import (
 	"github.com/Madh93/karakeepbot/internal/validation"
 )
 
-// Config holds the configuration for the KarakeepBot.
-type Config struct {
-	Karakeep *config.KarakeepConfig
-	Telegram *config.TelegramConfig
-}
-
 // KarakeepBot represents the bot with its dependencies, including the Karakeep
 // client, Telegram bot, logger and other options.
 type KarakeepBot struct {
@@ -38,10 +32,10 @@ type KarakeepBot struct {
 
 // New creates a new KarakeepBot instance, initializing the Karakeep and Telegram
 // clients.
-func New(logger *logging.Logger, config *Config) *KarakeepBot {
+func New(logger *logging.Logger, config *config.Config) *KarakeepBot {
 	return &KarakeepBot{
-		karakeep:     createKarakeep(logger, config.Karakeep),
-		telegram:     createTelegram(logger, config.Telegram),
+		karakeep:     createKarakeep(logger, &config.Karakeep),
+		telegram:     createTelegram(logger, &config.Telegram),
 		allowlist:    config.Telegram.Allowlist,
 		threads:      config.Telegram.Threads,
 		waitInterval: config.Karakeep.Interval,
