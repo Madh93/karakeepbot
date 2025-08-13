@@ -23,18 +23,18 @@ func TestProcessor_Process(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/valid.png":
-			w.Write(pngData)
+			_, _ = w.Write(pngData)
 		case "/valid.webp":
-			w.Write(webpData)
+			_, _ = w.Write(webpData)
 		case "/invalid.txt":
-			w.Write(textData)
+			_, _ = w.Write(textData)
 		case "/too-large":
-			w.Write(make([]byte, 101)) // 101 bytes, larger than our test limit of 100
+			_, _ = w.Write(make([]byte, 101)) // 101 bytes, larger than our test limit of 100
 		case "/not-found":
 			http.NotFound(w, r)
 		case "/slow":
 			time.Sleep(2 * time.Second)
-			w.Write([]byte("slow response"))
+			_, _ = w.Write([]byte("slow response"))
 		default:
 			http.NotFound(w, r)
 		}
@@ -115,8 +115,12 @@ func TestProcessor_Process(t *testing.T) {
 			}
 
 			filePath, _, err := processor.Process(server.URL+tt.urlPath, tt.validator)
-			if filePath != "" {
-				defer processor.Cleanup(filePath)
+			if err == nil && filePath != "" {
+				defer func() {
+					if cleanupErr := processor.Cleanup(filePath); cleanupErr != nil {
+						t.Errorf("Test %q succeeded, but failed to clean up temp file %s: %v", tt.name, filePath, cleanupErr)
+					}
+				}()
 			}
 
 			if tt.expectError {

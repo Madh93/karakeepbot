@@ -59,7 +59,17 @@ func (p *Processor) Process(fileURL string, validator Validator) (path string, c
 	if err != nil {
 		return "", "", fmt.Errorf("%w: %w", ErrProcessingFailed, err)
 	}
-	defer tmpFile.Close()
+
+	// Use a deferred function to ensure the temporary file is closed and cleaned up on error.
+	defer func() {
+		if closeErr := tmpFile.Close(); err == nil && closeErr != nil {
+			err = fmt.Errorf("%w: failed to close temp file: %w", ErrProcessingFailed, closeErr)
+		}
+
+		if err != nil {
+			_ = p.Cleanup(tmpFile.Name())
+		}
+	}()
 
 	// Configure an HTTP client with the specified timeout.
 	client := http.Client{
@@ -69,13 +79,15 @@ func (p *Processor) Process(fileURL string, validator Validator) (path string, c
 	// Download the file.
 	resp, err := client.Get(fileURL)
 	if err != nil {
-		p.Cleanup(tmpFile.Name())
 		return "", "", fmt.Errorf("%w: %w", ErrDownloadFailed, err)
 	}
-	defer resp.Body.Close()
+
+	// Defer closing the response body to prevent resource leaks.
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != http.StatusOK {
-		p.Cleanup(tmpFile.Name())
 		return "", "", fmt.Errorf("%w: status code %d", ErrDownloadFailed, resp.StatusCode)
 	}
 
@@ -83,13 +95,11 @@ func (p *Processor) Process(fileURL string, validator Validator) (path string, c
 	limitedReader := &io.LimitedReader{R: resp.Body, N: p.maxsize + 1}
 	bytesWritten, err := io.Copy(tmpFile, limitedReader)
 	if err != nil {
-		p.Cleanup(tmpFile.Name())
 		return "", "", fmt.Errorf("%w: %w", ErrProcessingFailed, err)
 	}
 
 	// Check if the file was larger than the limit
 	if bytesWritten > p.maxsize {
-		p.Cleanup(tmpFile.Name())
 		return "", "", fmt.Errorf("%w: exceeds %d bytes", ErrValidationFailed, p.maxsize)
 	}
 
@@ -97,7 +107,6 @@ func (p *Processor) Process(fileURL string, validator Validator) (path string, c
 	if validator != nil {
 		detectedContentType, err := validator(tmpFile)
 		if err != nil {
-			p.Cleanup(tmpFile.Name())
 			return "", "", fmt.Errorf("%w: %w", ErrValidationFailed, err)
 		}
 		contentType = detectedContentType
