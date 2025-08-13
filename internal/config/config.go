@@ -183,5 +183,8 @@ func validateConfig(config *Config) error {
 	if err := config.Logging.Validate(); err != nil {
 		return err
 	}
+	if err := config.FileProcessor.Validate(); err != nil {
+		return err
+	}
 	return nil
 }
