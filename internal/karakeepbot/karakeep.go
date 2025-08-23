@@ -3,8 +3,13 @@ package karakeepbot
 import (
 	"context"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"net/url"
+	"os"
+	"path/filepath"
 
 	"github.com/Madh93/go-karakeep"
 	"github.com/Madh93/karakeepbot/internal/config"
@@ -84,4 +89,90 @@ func (k Karakeep) RetrieveBookmarkById(ctx context.Context, id string) (*Karakee
 	// Return bookmark
 	bookmark := KarakeepBookmark(*response.JSON200)
 	return &bookmark, nil
+}
+
+// CreateAsset uploads a file to Karakeep and returns the asset details.
+// This version streams the request body, which is more memory-efficient and robust.
+func (k Karakeep) CreateAsset(ctx context.Context, filePath string, mimeType string) (*KarakeepAsset, error) {
+	pipeReader, pipeWriter := io.Pipe()
+	writer := multipart.NewWriter(pipeWriter)
+	errChan := make(chan error, 1)
+
+	go func() {
+		// Use a single error variable to capture the first failure.
+		var err error
+
+		// This defer ensures we always close the channel, signaling completion to the main function.
+		defer close(errChan)
+
+		// Defer the closing of the pipe and multipart writers.
+		// The function will capture the 'err' variable by reference.
+		// They will run in LIFO order: writer.Close() first, then pipeWriter.Close().
+		defer func() {
+			if closeErr := pipeWriter.Close(); closeErr != nil && err == nil {
+				err = fmt.Errorf("failed to close pipe writer: %w", closeErr)
+			}
+		}()
+		defer func() {
+			if closeErr := writer.Close(); closeErr != nil && err == nil {
+				err = fmt.Errorf("failed to close multipart writer: %w", closeErr)
+			}
+		}()
+
+		// The rest of the logic is wrapped in a function to make error handling clean.
+		// If this function returns an error, it gets sent to the channel.
+		err = func() error {
+			file, err := os.Open(filePath)
+			if err != nil {
+				return fmt.Errorf("failed to open file: %w", err)
+			}
+			defer func() {
+				if closeErr := file.Close(); closeErr != nil && err == nil {
+					err = fmt.Errorf("failed to close file: %w", closeErr)
+				}
+			}()
+
+			fileName := filepath.Base(filePath)
+			part, err := writer.CreatePart(textproto.MIMEHeader{
+				"Content-Disposition": []string{fmt.Sprintf(`form-data; name="file"; filename="%s"`, fileName)},
+				"Content-Type":        []string{mimeType},
+			})
+			if err != nil {
+				return fmt.Errorf("failed to create form part: %w", err)
+			}
+
+			if _, err := io.Copy(part, file); err != nil {
+				return fmt.Errorf("failed to copy file to form: %w", err)
+			}
+
+			return nil // Success
+		}()
+
+		// If any error occurred in the logic above, send it to the channel.
+		if err != nil {
+			errChan <- err
+		}
+	}()
+
+	// Make the HTTP request. This will now correctly unblock when the pipeWriter is closed.
+	response, err := k.PostAssetsWithBodyWithResponse(ctx, writer.FormDataContentType(), pipeReader)
+
+	// Check for errors from the goroutine. This also waits for the goroutine to finish its cleanup.
+	if goroutineErr := <-errChan; goroutineErr != nil {
+		return nil, goroutineErr
+	}
+
+	if err != nil {
+		if ctx.Err() != nil {
+			return nil, fmt.Errorf("request cancelled: %w", ctx.Err())
+		}
+		return nil, fmt.Errorf("failed to upload asset: %w", err)
+	}
+
+	if response.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("failed to upload asset, received HTTP status: %s, body: %s", response.Status(), string(response.Body))
+	}
+
+	asset := KarakeepAsset(*response.JSON200)
+	return &asset, nil
 }
