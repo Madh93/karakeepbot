@@ -111,11 +111,12 @@ func (p *Processor) Process(fileURL string, validator Validator) (path string, c
 		}
 		contentType = detectedContentType
 	} else {
-		// If no validator is provided, still attempt to detect the content type
-		// without enforcing any rules.
-		if _, err := tmpFile.Seek(0, io.SeekStart); err != nil {
+		if _, err := tmpFile.Seek(0, io.SeekStart); err == nil {
 			buffer := make([]byte, 512)
-			n, _ := tmpFile.Read(buffer)
+			n, readErr := tmpFile.Read(buffer)
+			if readErr != nil && readErr != io.EOF {
+				return "", "", fmt.Errorf("%w: failed to read from temp file for content type detection: %w", ErrProcessingFailed, readErr)
+			}
 			contentType = http.DetectContentType(buffer[:n])
 		}
 	}
