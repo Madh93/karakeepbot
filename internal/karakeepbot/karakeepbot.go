@@ -15,6 +15,8 @@ import (
 
 	"github.com/Madh93/go-karakeep"
 	"github.com/Madh93/karakeepbot/internal/config"
+	"github.com/Madh93/karakeepbot/internal/fileprocessor"
+	"github.com/Madh93/karakeepbot/internal/filevalidator"
 	"github.com/Madh93/karakeepbot/internal/logging"
 	"github.com/Madh93/karakeepbot/internal/validation"
 )
@@ -22,24 +24,49 @@ import (
 // KarakeepBot represents the bot with its dependencies, including the Karakeep
 // client, Telegram bot, logger and other options.
 type KarakeepBot struct {
-	karakeep     *Karakeep
-	telegram     *Telegram
-	logger       *logging.Logger
-	allowlist    []int64
-	threads      []int
-	waitInterval int
+	karakeep       *Karakeep
+	telegram       *Telegram
+	logger         *logging.Logger
+	fileProcessor  *fileprocessor.Processor
+	fileValidators map[string]fileprocessor.Validator
+	allowlist      []int64
+	threads        []int
+	waitInterval   int
 }
 
 // New creates a new KarakeepBot instance, initializing the Karakeep and Telegram
 // clients.
 func New(logger *logging.Logger, config *config.Config) *KarakeepBot {
+	// Initialize FileProcessor
+	fileProcessor, err := fileprocessor.New(&config.FileProcessor)
+	if err != nil {
+		logger.Fatal("Failed to create file processor", "error", err)
+	}
+
+	// Setup Supported File Validators
+	fileValidators := make(map[string]fileprocessor.Validator)
+	fileValidators["image/jpeg"] = filevalidator.ImageValidator
+	fileValidators["image/png"] = filevalidator.ImageValidator
+	fileValidators["image/webp"] = filevalidator.ImageValidator
+
+	// Check if the validators passed in the configuration are supported
+	if len(config.FileProcessor.Mimetypes) > 0 {
+		for _, mimetype := range config.FileProcessor.Mimetypes {
+			if _, supported := fileValidators[mimetype]; !supported {
+				logger.Fatal("Configuration error: unsupported MIME type configured", "mime_type", mimetype)
+			}
+		}
+	}
+
 	return &KarakeepBot{
-		karakeep:     createKarakeep(logger, &config.Karakeep),
-		telegram:     createTelegram(logger, &config.Telegram),
-		allowlist:    config.Telegram.Allowlist,
-		threads:      config.Telegram.Threads,
-		waitInterval: config.Karakeep.Interval,
-		logger:       logger,
+		karakeep:       createKarakeep(logger, &config.Karakeep),
+		telegram:       createTelegram(logger, &config.Telegram),
+		allowlist:      config.Telegram.Allowlist,
+		threads:        config.Telegram.Threads,
+		waitInterval:   config.Karakeep.Interval,
+		fileProcessor:  fileProcessor,
+		fileValidators: fileValidators,
+		logger:         logger,
 	}
 }
 
@@ -82,7 +109,7 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 
 	// Parse the message to get corresponding bookmark type
 	kb.logger.Debug("Parsing message to get corresponding bookmark type", msg.Attrs()...)
-	b, err := parseMessage(msg)
+	b, err := kb.parseMessage(ctx, msg)
 	if err != nil {
 		kb.logger.Error("Failed to parse message", msg.AttrsWithError(err)...)
 		return
@@ -115,14 +142,30 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 		time.Sleep(time.Duration(kb.waitInterval) * time.Second)
 	}
 
-	// Add tags
-	msg.Text = msg.Text + "\n\n" + bookmark.Hashtags()
+	// Get hashtags
+	hashtags := bookmark.Hashtags()
 
-	// Send back new message with tags
-	kb.logger.Debug("Sending updated message with tags", msg.Attrs()...)
-	if err := kb.telegram.SendNewMessage(ctx, &msg); err != nil {
-		kb.logger.Error("Failed to send new message", msg.AttrsWithError(err)...)
-		return
+	// Send back with hashtags
+	if msg.Photo != nil {
+		// Add hashtags
+		caption := msg.Caption + "\n\n" + hashtags
+
+		// Send back the original photo with hashtags as caption
+		kb.logger.Debug("Sending updated message with photo and hashtags", msg.Attrs()...)
+		if err := kb.telegram.SendPhotoWithCaption(ctx, &msg, msg.Photo[len(msg.Photo)-1].FileID, caption); err != nil {
+			kb.logger.Error("Failed to send photo with caption", msg.AttrsWithError(err)...)
+			return
+		}
+	} else {
+		// Add hashtags
+		msg.Text = msg.Text + "\n\n" + hashtags
+
+		// Send back new message with hashtags
+		kb.logger.Debug("Sending updated message with hashtags", msg.Attrs()...)
+		if err := kb.telegram.SendNewMessage(ctx, &msg); err != nil {
+			kb.logger.Error("Failed to send new message", msg.AttrsWithError(err)...)
+			return
+		}
 	}
 
 	// Delete original message
@@ -146,8 +189,10 @@ func (kb KarakeepBot) isThreadIdAllowed(threadId int) bool {
 }
 
 // parseMessage parses the incoming Telegram message and returns the corresponding Bookmark type.
-func parseMessage(msg TelegramMessage) (BookmarkType, error) {
+func (kb KarakeepBot) parseMessage(ctx context.Context, msg TelegramMessage) (BookmarkType, error) {
 	switch {
+	case msg.Photo != nil:
+		return kb.handlePhotoMessage(ctx, msg)
 	case validation.ValidateURL(msg.Text) == nil:
 		return NewLinkBookmark(msg.Text), nil
 	case msg.Text != "":
@@ -155,4 +200,55 @@ func parseMessage(msg TelegramMessage) (BookmarkType, error) {
 	default:
 		return nil, errors.New("unsupported bookmark type")
 	}
+}
+
+// handlePhotoMessage processes a message containing a photo.
+func (kb *KarakeepBot) handlePhotoMessage(ctx context.Context, msg TelegramMessage) (bookmark BookmarkType, err error) {
+	// Select the largest photo
+	photo := msg.Photo[len(msg.Photo)-1]
+	kb.logger.Debug("Handling Telegram image", "file_id", photo.FileID, "file_size", photo.FileSize)
+
+	// Get file URL
+	fileURL, err := kb.telegram.GetFileURL(ctx, photo.FileID)
+	if err != nil {
+		kb.logger.Error("Failed to get file URL", msg.AttrsWithError(err)...)
+		if replyErr := kb.telegram.SendReply(ctx, &msg, "⚠️ Failed to process image from Telegram servers, try again later"); replyErr != nil {
+			kb.logger.Error("Failed to send reply to user", "reply_error", replyErr)
+		}
+		return nil, errors.New("couldn't get file URL")
+	}
+
+	// Download file. NOTE: Telegram Photo does not have mime type info. We can't use any validator.
+	filePath, mimeType, err := kb.fileProcessor.Process(fileURL, nil)
+	if err != nil {
+		kb.logger.Error("Failed to process image", msg.AttrsWithError(err)...)
+		if replyErr := kb.telegram.SendReply(ctx, &msg, "⚠️ Failed to process image"); replyErr != nil {
+			kb.logger.Error("Failed to send reply to user", "reply_error", replyErr)
+		}
+		return nil, errors.New("couldn't process image")
+	}
+	defer func() {
+		if cleanupErr := kb.fileProcessor.Cleanup(filePath); cleanupErr != nil {
+			kb.logger.Error("Failed to cleanup temporary file", "path", filePath, "error", cleanupErr)
+			if err == nil {
+				err = cleanupErr
+			}
+		}
+	}()
+
+	kb.logger.Debug("Detected MIME type", "mime_type", mimeType)
+
+	// Upload asset to Karakeep
+	asset, err := kb.karakeep.CreateAsset(ctx, filePath, mimeType)
+	if err != nil {
+		kb.logger.Error("Failed to upload asset", msg.AttrsWithError(err)...)
+		if replyErr := kb.telegram.SendReply(ctx, &msg, "⚠️ Failed to upload asset to Karakeep"); replyErr != nil {
+			kb.logger.Error("Failed to send reply to user", "reply_error", replyErr)
+		}
+		return nil, errors.New("couldn't upload asset")
+	}
+
+	kb.logger.Debug("Asset uploaded successfully", "asset_id", asset.AssetId)
+
+	return NewAssetBookmark(asset.AssetId, ImageAssetType), nil
 }
