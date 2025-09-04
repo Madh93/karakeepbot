@@ -180,7 +180,18 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 
 // isChatIdAllowed checks if the chat ID is allowed to receive messages.
 func (kb KarakeepBot) isChatIdAllowed(chatId int64) bool {
-	return len(kb.allowlist) == 0 || slices.Contains(kb.allowlist, chatId)
+	// When no allowlist is provided, all chat IDs are allowed
+	if len(kb.allowlist) == 0 {
+		return true
+	}
+
+	// When the allowlist provided by environment variable is empty, it contains
+	// a single element with value 0.
+	if len(kb.allowlist) == 1 && kb.allowlist[0] == 0 {
+		return true
+	}
+
+	return slices.Contains(kb.allowlist, chatId)
 }
 
 // isThreadIdAllowed checks if the thread ID is allowed to receive messages.

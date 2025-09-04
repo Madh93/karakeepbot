@@ -116,7 +116,7 @@ To protect your bot from abuse and spam from unauthorized users, `Karakeepbot` i
 By default, the bot is configured with a placeholder value and **it will not start** until you explicitly configure the `telegram.allowlist` parameter. You have two options:
 
 1. **Recommended:** Provide a list of one or more specific Chat IDs. This ensures only you and other authorized users can interact with the bot.
-2. **Not Recommended:** Provide an empty list (`[]`). This will allow any Telegram user to interact with your bot, exposing it to potential abuse.
+2. **Not Recommended:** Provide an empty list (`[]` or `KARAKEEPBOT_TELEGRAM_ALLOWLIST=""` environment variable). This will allow any Telegram user to interact with your bot, exposing it to potential abuse.
 
 #### How to Find Your Chat ID
 
