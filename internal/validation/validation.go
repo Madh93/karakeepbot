@@ -7,7 +7,7 @@
 //
 //   - ValidateKarakeepToken: Validates the format of the Karakeep API Key,
 //     ensuring it follows the expected pattern of `ak1_{20_hex_characters}_{20_hex_characters}`.
-//     or the newer `ak2_{20_hex_characters}_{20_hex_characters}`.
+//     or the newer `ak2_{20_hex_characters}_{32_hex_characters}`.
 //
 //   - ValidateTelegramToken: Validates the format of a Telegram bot token,
 //     ensuring it matches the required pattern of `8-10 digits:followed by a 35-character string`.
