@@ -11,7 +11,7 @@ import (
 func ValidateKarakeepToken(token secret.String) error {
 	// Define the pattern for a valid Karakeep API Key
 	// See: https://github.com/karakeep-app/karakeep/blob/v0.20.0/packages/trpc/auth.ts#L14
-	pattern := `^ak[12]_[a-f0-9]{20}_[a-f0-9]{20}$`
+	pattern := `^ak1_[a-f0-9]{20}_[a-f0-9]{20}$|^ak2_[a-f0-9]{20}_[a-f0-9]{32}$`
 	re := regexp.MustCompile(pattern)
 
 	// Check if the token matches the defined pattern
