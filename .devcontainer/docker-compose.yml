@@ -7,7 +7,7 @@ services:
     command: sleep infinity
 
   karakeep:
-    image: ghcr.io/karakeep-app/karakeep:0.26.0
+    image: ghcr.io/karakeep-app/karakeep:0.27.1
     container_name: devcontainer_karakeep
     volumes:
       - karakeep_data:/data
