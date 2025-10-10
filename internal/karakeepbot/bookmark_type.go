@@ -70,14 +70,26 @@ type AssetBookmark struct {
 	Bookmark
 	AssetID   string    `json:"assetId"`
 	AssetType AssetType `json:"assetType"`
+	Title     string    `json:"title,omitempty"`
+	Note      string    `json:"note,omitempty"`
 }
 
 // NewAssetBookmark creates a new AssetBookmark for a given asset.
-func NewAssetBookmark(assetID string, assetType AssetType) *AssetBookmark {
+func NewAssetBookmark(assetID string, assetType AssetType, note string) *AssetBookmark {
+	title := note
+
+	// Truncate title to avoid max length (https://github.com/karakeep-app/karakeep/commit/aecbe6ae8b3dbc7bcdcf33f1c8c086dafb77eb24#diff-18ac11cb95d04713123a9df4fb60e90f9ee5ecada941c2aa1b6f72eb1c8bb674R6-R136)
+	runes := []rune(note)
+	if len(runes) > 150 {
+		title = string(runes[:150]) + "..."
+	}
+
 	return &AssetBookmark{
 		Bookmark:  Bookmark{Type: "asset"},
 		AssetID:   assetID,
 		AssetType: assetType,
+		Title:     title,
+		Note:      note,
 	}
 }
 

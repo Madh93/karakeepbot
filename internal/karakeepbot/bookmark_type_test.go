@@ -31,7 +31,7 @@ func TestBookmarkConstructors(t *testing.T) {
 	t.Run("creates a valid asset bookmark", func(t *testing.T) {
 		assetID := "asset-123"
 		assetType := ImageAssetType
-		bookmark := NewAssetBookmark(assetID, assetType)
+		bookmark := NewAssetBookmark(assetID, assetType, "An optional note")
 		if bookmark.Type != "asset" || bookmark.AssetID != assetID || bookmark.AssetType != assetType {
 			t.Errorf("NewAssetBookmark(%q, %q) created an invalid bookmark: %+v", assetID, assetType, *bookmark)
 		}
@@ -57,8 +57,8 @@ func TestBookmarkStringer(t *testing.T) {
 		},
 		{
 			name:     "AssetBookmark for image",
-			bookmark: NewAssetBookmark("img-uuid-456", ImageAssetType),
-			expected: "AssetBookmark (Type: image, ID: img-uuid-456)",
+			bookmark: NewAssetBookmark("img-uuid-456", ImageAssetType, ""),
+			expected: `AssetBookmark (Type: image, ID: img-uuid-456)`,
 		},
 	}
 
@@ -90,9 +90,14 @@ func TestToJSONReader(t *testing.T) {
 			expected: `{"type":"text","text":"Hello World"}`,
 		},
 		{
-			name:     "AssetBookmark to JSON",
-			bookmark: NewAssetBookmark("img-uuid-789", ImageAssetType),
-			expected: `{"type":"asset","assetId":"img-uuid-789","assetType":"image"}`,
+			name:     "AssetBookmark without note to JSON",
+			bookmark: NewAssetBookmark("img-uuid-123", ImageAssetType, ""),
+			expected: `{"type":"asset","assetId":"img-uuid-123","assetType":"image"}`,
+		},
+		{
+			name:     "AssetBookmark with note to JSON",
+			bookmark: NewAssetBookmark("img-uuid-789", ImageAssetType, "My awesome image"),
+			expected: `{"type":"asset","assetId":"img-uuid-789","assetType":"image","title":"My awesome image","note":"My awesome image"}`,
 		},
 	}
 

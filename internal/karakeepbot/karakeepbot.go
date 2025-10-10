@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/Madh93/go-karakeep"
@@ -261,5 +262,8 @@ func (kb *KarakeepBot) handlePhotoMessage(ctx context.Context, msg TelegramMessa
 
 	kb.logger.Debug("Asset uploaded successfully", "asset_id", asset.AssetId)
 
-	return NewAssetBookmark(asset.AssetId, ImageAssetType), nil
+	// Get note from caption
+	note := strings.TrimSpace(msg.Caption)
+
+	return NewAssetBookmark(asset.AssetId, ImageAssetType, note), nil
 }
