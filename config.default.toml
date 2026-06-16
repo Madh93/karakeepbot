@@ -18,6 +18,12 @@ allowlist = [-1]
 # (default), the bot will interact with all threads.
 threads = []
 
+# Whether to use a proxy for Telegram Bot API connections.
+proxyenabled = false
+
+# Proxy URL (e.g., "socks5://127.0.0.1:1080" or "http://proxy.example.com:8080").
+# proxyurl = "socks5://127.0.0.1:1080"
+
 # ------------------------------------------
 # Karakeep configuration
 # ------------------------------------------

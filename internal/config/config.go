@@ -72,8 +72,10 @@ var DefaultPath = filepath.Join(os.Getenv("KO_DATA_PATH"), DefaultConfigFile)
 // DefaultConfig is the default configuration for the bot.
 var DefaultConfig = Config{
 	Telegram: TelegramConfig{
-		Allowlist: []int64{-1}, // Enforce allowlist by default.
-		Threads:   []int(nil),
+		Allowlist:    []int64{-1}, // Enforce allowlist by default.
+		Threads:      []int(nil),
+		ProxyEnabled: false,
+		ProxyURL:     "",
 	},
 	Karakeep: KarakeepConfig{
 		URL:      "http://localhost:3000",
