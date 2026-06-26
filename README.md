@@ -109,6 +109,26 @@ Additionally, you can override the configuration values using environment variab
 KARAKEEPBOT_LOGGING_LEVEL=debug KARAKEEPBOT_TELEGRAM_ALLOWLIST=chat_id_1,chat_id_2 karakeepbot
 ```
 
+### Proxy Configuration
+
+If you need to connect through a proxy (e.g., SOCKS5), enable it in your config:
+
+```toml
+[telegram]
+proxyenabled = true
+proxyurl = "socks5://127.0.0.1:1080"
+```
+
+Or via environment variables:
+
+```sh
+KARAKEEPBOT_TELEGRAM_PROXYENABLED=true \
+KARAKEEPBOT_TELEGRAM_PROXYURL=socks5://127.0.0.1:1080 \
+karakeepbot
+```
+
+Supported schemes: `socks5://`, `http://`, `https://`.
+
 ### Security Concerns
 
 To protect your bot from abuse and spam from unauthorized users, `Karakeepbot` implements a **mandatory Chat ID allowlist**.

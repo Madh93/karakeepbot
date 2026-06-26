@@ -46,6 +46,8 @@ func TestProcessor_Process(t *testing.T) {
 		config        config.FileProcessorConfig
 		urlPath       string
 		validator     Validator
+		proxyEnabled  bool
+		proxyURL      string
 		expectError   bool
 		expectedError error
 	}{
@@ -105,11 +107,21 @@ func TestProcessor_Process(t *testing.T) {
 			expectError:   true,
 			expectedError: ErrDownloadFailed,
 		},
+		{
+			name:          "Fail with proxy enabled and unreachable proxy",
+			config:        config.FileProcessorConfig{Maxsize: 100, Timeout: 5},
+			urlPath:       "/valid.png",
+			validator:     nil,
+			proxyEnabled:  true,
+			proxyURL:      "socks5://127.0.0.1:1",
+			expectError:   true,
+			expectedError: ErrDownloadFailed,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			processor, err := New(&tt.config)
+			processor, err := New(&tt.config, tt.proxyEnabled, tt.proxyURL)
 			if err != nil {
 				t.Fatalf("Failed to create processor: %v", err)
 			}

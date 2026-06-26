@@ -3,6 +3,9 @@ package karakeepbot
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/Madh93/karakeepbot/internal/config"
 	"github.com/Madh93/karakeepbot/internal/logging"
@@ -24,7 +27,25 @@ type Telegram struct {
 func createTelegram(logger *logging.Logger, config *config.TelegramConfig) *Telegram {
 	logger.Debug(fmt.Sprintf("Initializing Telegram Bot API using %s token", config.Token))
 
-	telegramBot, err := tgbotapi.New(config.Token.Value())
+	var opts []tgbotapi.Option
+
+	if config.ProxyEnabled {
+		proxyURL, err := url.Parse(config.ProxyURL)
+		if err != nil {
+			logger.Fatal("Error parsing proxy URL.", "error", err)
+		}
+
+		transport := &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}
+		client := &http.Client{
+			Transport: transport,
+		}
+		opts = append(opts, tgbotapi.WithHTTPClient(30*time.Second, client))
+		opts = append(opts, tgbotapi.WithCheckInitTimeout(30*time.Second))
+	}
+
+	telegramBot, err := tgbotapi.New(config.Token.Value(), opts...)
 	if err != nil {
 		logger.Fatal("Error creating Telegram Bot API.", "error", err)
 	}

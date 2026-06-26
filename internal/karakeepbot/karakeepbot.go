@@ -39,7 +39,7 @@ type KarakeepBot struct {
 // clients.
 func New(logger *logging.Logger, config *config.Config) *KarakeepBot {
 	// Initialize FileProcessor
-	fileProcessor, err := fileprocessor.New(&config.FileProcessor)
+	fileProcessor, err := fileprocessor.New(&config.FileProcessor, config.Telegram.ProxyEnabled, config.Telegram.ProxyURL)
 	if err != nil {
 		logger.Fatal("Failed to create file processor", "error", err)
 	}

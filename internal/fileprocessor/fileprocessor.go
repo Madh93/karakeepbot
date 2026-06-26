@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
@@ -27,13 +28,17 @@ type Validator func(file *os.File) (contentType string, err error)
 
 // Processor is responsible for downloading and processing files.
 type Processor struct {
-	tempdir string
-	maxsize int64
-	timeout int
+	tempdir      string
+	maxsize      int64
+	timeout      int
+	proxyEnabled bool
+	proxyURL     string
 }
 
 // New creates a new Processor using the provided configuration.
-func New(config *config.FileProcessorConfig) (*Processor, error) {
+// If proxyEnabled is true, the HTTP client used for downloads will route
+// through the specified proxyURL.
+func New(config *config.FileProcessorConfig, proxyEnabled bool, proxyURL string) (*Processor, error) {
 	// Create a temporary directory for storing files.
 	tempdir := config.Tempdir
 	if tempdir == "" {
@@ -44,9 +49,11 @@ func New(config *config.FileProcessorConfig) (*Processor, error) {
 	}
 
 	return &Processor{
-		tempdir: tempdir,
-		maxsize: config.Maxsize,
-		timeout: config.Timeout,
+		tempdir:      tempdir,
+		maxsize:      config.Maxsize,
+		timeout:      config.Timeout,
+		proxyEnabled: proxyEnabled,
+		proxyURL:     proxyURL,
 	}, nil
 }
 
@@ -71,9 +78,18 @@ func (p *Processor) Process(fileURL string, validator Validator) (path string, c
 		}
 	}()
 
-	// Configure an HTTP client with the specified timeout.
+	// Configure an HTTP client with the specified timeout and optional proxy.
+	transport := http.DefaultTransport.(*http.Transport).Clone()
+	if p.proxyEnabled && p.proxyURL != "" {
+		proxyURL, err := url.Parse(p.proxyURL)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to parse proxy URL: %w", err)
+		}
+		transport.Proxy = http.ProxyURL(proxyURL)
+	}
 	client := http.Client{
-		Timeout: time.Duration(p.timeout) * time.Second,
+		Transport: transport,
+		Timeout:   time.Duration(p.timeout) * time.Second,
 	}
 
 	// Download the file.
