@@ -22,6 +22,10 @@ import (
 	"github.com/Madh93/karakeepbot/internal/validation"
 )
 
+// maxTagRetries is the number of times to wait for Karakeep AI tagging to
+// complete before proceeding. At 5s per retry, 6 retries = ~30s timeout.
+const maxTagRetries = 6
+
 // KarakeepBot represents the bot with its dependencies, including the Karakeep
 // client, Telegram bot, logger and other options.
 type KarakeepBot struct {
@@ -125,22 +129,17 @@ func (kb KarakeepBot) handler(ctx context.Context, _ *Bot, update *TelegramUpdat
 	}
 	kb.logger.Info("Created bookmark", bookmark.Attrs()...)
 
-	// Wait until bookmark tags are updated
+	// Enrich bookmark with Telegram origin metadata
+	kb.logger.Debug("Enriching bookmark with Telegram origin metadata", bookmark.Attrs()...)
+	kb.enrichBookmark(ctx, msg, bookmark)
+
+	// Wait until bookmark tags are updated (with a timeout to avoid hanging on
+	// uncrawlable URLs)
 	kb.logger.Debug("Waiting for bookmark tags to be updated", bookmark.Attrs()...)
-	for {
-		bookmark, err = kb.karakeep.RetrieveBookmarkById(ctx, bookmark.Id)
-		if err != nil {
-			kb.logger.Error("Failed to retrieve bookmark", "error", err)
-			return
-		}
-		if *bookmark.TaggingStatus == karakeep.BookmarkTaggingStatusSuccess {
-			break
-		} else if *bookmark.TaggingStatus == karakeep.BookmarkTaggingStatusFailure {
-			kb.logger.Error("Failed to update bookmark tags", bookmark.AttrsWithError(err)...)
-			return
-		}
-		kb.logger.Debug(fmt.Sprintf("Bookmark is still pending, waiting %d seconds before retrying", kb.waitInterval), bookmark.Attrs()...)
-		time.Sleep(time.Duration(kb.waitInterval) * time.Second)
+	bookmark, err = kb.waitForTagCompletion(ctx, bookmark)
+	if err != nil {
+		kb.logger.Error("Failed to wait for bookmark tagging", "error", err)
+		return
 	}
 
 	// Get hashtags
@@ -200,18 +199,130 @@ func (kb KarakeepBot) isThreadIdAllowed(threadId int) bool {
 	return len(kb.threads) == 0 || slices.Contains(kb.threads, threadId)
 }
 
-// parseMessage parses the incoming Telegram message and returns the corresponding Bookmark type.
-func (kb KarakeepBot) parseMessage(ctx context.Context, msg TelegramMessage) (BookmarkType, error) {
-	switch {
-	case msg.Photo != nil:
-		return kb.handlePhotoMessage(ctx, msg)
-	case validation.ValidateURL(msg.Text) == nil:
-		return NewLinkBookmark(msg.Text), nil
-	case msg.Text != "":
-		return NewTextBookmark(msg.Text), nil
-	default:
-		return nil, errors.New("unsupported bookmark type")
+// waitForTagCompletion polls the bookmark tagging status until it succeeds,
+// fails, or the retry timeout is reached. Returns the updated bookmark.
+func (kb *KarakeepBot) waitForTagCompletion(ctx context.Context, bookmark *KarakeepBookmark) (*KarakeepBookmark, error) {
+	retries := 0
+	for {
+		var err error
+		bookmark, err = kb.karakeep.RetrieveBookmarkById(ctx, bookmark.Id)
+		if err != nil {
+			return nil, err
+		}
+		if *bookmark.TaggingStatus == karakeep.BookmarkTaggingStatusSuccess {
+			return bookmark, nil
+		}
+		if *bookmark.TaggingStatus == karakeep.BookmarkTaggingStatusFailure {
+			return nil, fmt.Errorf("bookmark tagging failed")
+		}
+		retries++
+		if retries >= maxTagRetries {
+			kb.logger.Warn("Bookmark tagging did not complete within timeout, proceeding anyway", bookmark.Attrs()...)
+			return bookmark, nil
+		}
+		kb.logger.Debug(fmt.Sprintf("Bookmark is still pending, waiting %d seconds before retrying", kb.waitInterval), bookmark.Attrs()...)
+		time.Sleep(time.Duration(kb.waitInterval) * time.Second)
 	}
+}
+
+// parseMessage parses the incoming Telegram message and returns the
+// corresponding Bookmark type.
+func (kb KarakeepBot) parseMessage(ctx context.Context, msg TelegramMessage) (BookmarkType, error) {
+	if msg.Photo != nil {
+		return kb.handlePhotoMessage(ctx, msg)
+	}
+
+	if url := msg.ChannelPostLink(); url != "" {
+		lb := NewLinkBookmark(url)
+		lb.Title = extractTitle(msg.Text)
+
+		var parts []string
+		if text := strings.TrimSpace(msg.Text); text != "" {
+			parts = append(parts, text)
+		}
+		if entityURLs := msg.EntityURLs(); len(entityURLs) > 0 {
+			parts = append(parts, "Links:\n"+strings.Join(entityURLs, "\n"))
+		}
+		if ctxNote := msg.ContextNote(); ctxNote != "" {
+			parts = append(parts, ctxNote)
+		}
+		lb.Note = strings.Join(parts, "\n\n")
+
+		return lb, nil
+	}
+
+	if url := msg.ExtractURL(); url != "" {
+		return newSimpleLinkBookmark(url, msg), nil
+	}
+
+	if validation.ValidateURL(msg.Text) == nil {
+		return newSimpleLinkBookmark(msg.Text, msg), nil
+	}
+
+	if url := extractEmbeddedURL(msg.Text); url != "" {
+		return newSimpleLinkBookmark(url, msg), nil
+	}
+
+	if msg.Text != "" {
+		tb := NewTextBookmark(msg.Text)
+		if ctxNote := msg.ContextNote(); ctxNote != "" {
+			tb.Note = ctxNote
+		}
+		return tb, nil
+	}
+
+	return nil, errors.New("unsupported bookmark type")
+}
+
+// newSimpleLinkBookmark creates a LinkBookmark from a URL and message, with
+// title extracted from the first line and a note combining the message text
+// with Telegram origin context.
+func newSimpleLinkBookmark(url string, msg TelegramMessage) *LinkBookmark {
+	lb := NewLinkBookmark(url)
+	lb.Title = extractTitle(msg.Text)
+	lb.Note = buildNote(msg.Text, msg.ContextNote())
+	return lb
+}
+
+// extractTitle returns the first line of text as a title, truncated to 150
+// characters to avoid Karakeep limits.
+func extractTitle(text string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return ""
+	}
+	lines := strings.SplitN(text, "\n", 2)
+	title := strings.TrimSpace(lines[0])
+	runes := []rune(title)
+	if len(runes) > 150 {
+		title = string(runes[:150]) + "..."
+	}
+	return title
+}
+
+// buildNote combines the original message text with a context note.
+func buildNote(text, contextNote string) string {
+	text = strings.TrimSpace(text)
+	if text == "" {
+		return contextNote
+	}
+	if contextNote == "" {
+		return text
+	}
+	return text + "\n\n" + contextNote
+}
+
+// extractEmbeddedURL finds the first http or https URL within arbitrary text.
+// Returns empty string if no URL is found.
+func extractEmbeddedURL(text string) string {
+	words := strings.Fields(text)
+	for _, word := range words {
+		word = strings.TrimRight(word, ",.!?:;)]}")
+		if err := validation.ValidateURL(word); err == nil {
+			return word
+		}
+	}
+	return ""
 }
 
 // handlePhotoMessage processes a message containing a photo.
@@ -262,8 +373,15 @@ func (kb *KarakeepBot) handlePhotoMessage(ctx context.Context, msg TelegramMessa
 
 	kb.logger.Debug("Asset uploaded successfully", "asset_id", asset.AssetId)
 
-	// Get note from caption
+	// Get note from caption and append Telegram origin context
 	note := strings.TrimSpace(msg.Caption)
-
-	return NewAssetBookmark(asset.AssetId, ImageAssetType, note), nil
+	ab := NewAssetBookmark(asset.AssetId, ImageAssetType, note)
+	if ctxNote := msg.ContextNote(); ctxNote != "" {
+		if ab.Note != "" {
+			ab.Note += "\n\n" + ctxNote
+		} else {
+			ab.Note = ctxNote
+		}
+	}
+	return ab, nil
 }

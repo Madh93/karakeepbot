@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Madh93/go-karakeep"
 	"github.com/Madh93/karakeepbot/internal/config"
@@ -175,4 +176,20 @@ func (k Karakeep) CreateAsset(ctx context.Context, filePath string, mimeType str
 
 	asset := KarakeepAsset(*response.JSON200)
 	return &asset, nil
+}
+
+// AddTag attaches a human-attached tag to an existing bookmark.
+func (k Karakeep) AddTag(ctx context.Context, bookmarkID string, tagName string) error {
+	payload := fmt.Sprintf(`{"tags":[{"tagName":"%s"}]}`, tagName)
+	body := strings.NewReader(payload)
+
+	response, err := k.PostBookmarksBookmarkIdTagsWithBodyWithResponse(ctx, bookmarkID, "application/json", body)
+	if err != nil {
+		return fmt.Errorf("failed to add tag: %w", err)
+	}
+	if response.StatusCode() != http.StatusOK {
+		return fmt.Errorf("failed to add tag, received HTTP status: %s", response.Status())
+	}
+
+	return nil
 }
