@@ -30,7 +30,9 @@ type Bookmark struct {
 // LinkBookmark represents a bookmark with a URL.
 type LinkBookmark struct {
 	Bookmark
-	URL string `json:"url"`
+	URL   string `json:"url"`
+	Title string `json:"title,omitempty"`
+	Note  string `json:"note,omitempty"`
 }
 
 // NewLinkBookmark creates a new LinkBookmark with the given URL.
@@ -50,6 +52,7 @@ func (lb LinkBookmark) String() string {
 type TextBookmark struct {
 	Bookmark
 	Text string `json:"text"`
+	Note string `json:"note,omitempty"`
 }
 
 // NewTextBookmark creates a new TextBookmark with the given text content.
