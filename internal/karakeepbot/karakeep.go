@@ -1,7 +1,9 @@
 package karakeepbot
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -10,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/Madh93/go-karakeep"
 	"github.com/Madh93/karakeepbot/internal/config"
@@ -178,17 +179,33 @@ func (k Karakeep) CreateAsset(ctx context.Context, filePath string, mimeType str
 	return &asset, nil
 }
 
-// AddTag attaches a human-attached tag to an existing bookmark.
-func (k Karakeep) AddTag(ctx context.Context, bookmarkID string, tagName string) error {
-	payload := fmt.Sprintf(`{"tags":[{"tagName":"%s"}]}`, tagName)
-	body := strings.NewReader(payload)
+// AddTags attaches human-attached tags to an existing bookmark.
+func (k Karakeep) AddTags(ctx context.Context, bookmarkID string, tagNames []string) error {
+	if len(tagNames) == 0 {
+		return nil
+	}
 
-	response, err := k.PostBookmarksBookmarkIdTagsWithBodyWithResponse(ctx, bookmarkID, "application/json", body)
+	type tag struct {
+		TagName string `json:"tagName"`
+	}
+	payload := struct {
+		Tags []tag `json:"tags"`
+	}{}
+	for _, name := range tagNames {
+		payload.Tags = append(payload.Tags, tag{TagName: name})
+	}
+
+	data, err := json.Marshal(payload)
 	if err != nil {
-		return fmt.Errorf("failed to add tag: %w", err)
+		return fmt.Errorf("failed to marshal tags: %w", err)
+	}
+
+	response, err := k.PostBookmarksBookmarkIdTagsWithBodyWithResponse(ctx, bookmarkID, "application/json", bytes.NewReader(data))
+	if err != nil {
+		return fmt.Errorf("failed to add tags: %w", err)
 	}
 	if response.StatusCode() != http.StatusOK {
-		return fmt.Errorf("failed to add tag, received HTTP status: %s", response.Status())
+		return fmt.Errorf("failed to add tags, received HTTP status: %s", response.Status())
 	}
 
 	return nil

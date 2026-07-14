@@ -2,11 +2,16 @@ package karakeepbot
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/go-telegram/bot/models"
 )
+
+// hashtagRegexp matches Telegram-style hashtags, capturing the tag name
+// without the leading '#'. Supports unicode letters and digits.
+var hashtagRegexp = regexp.MustCompile(`#([\p{L}\p{N}_]+)`)
 
 // TelegramUpdate is an alias for models.Update.
 type TelegramUpdate = models.Update
@@ -85,6 +90,23 @@ func (tm TelegramMessage) EntityURLs() []string {
 		}
 	}
 	return urls
+}
+
+// Hashtags returns the unique hashtags found in the message text and photo
+// caption, without the leading '#'.
+func (tm TelegramMessage) Hashtags() []string {
+	seen := make(map[string]struct{})
+	var tags []string
+	for _, source := range []string{tm.Text, tm.Caption} {
+		for _, match := range hashtagRegexp.FindAllStringSubmatch(source, -1) {
+			tag := match[1]
+			if _, ok := seen[tag]; !ok {
+				seen[tag] = struct{}{}
+				tags = append(tags, tag)
+			}
+		}
+	}
+	return tags
 }
 
 // authorInfo returns the origin type and display name for the message author.
